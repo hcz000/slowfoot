@@ -1,0 +1,45 @@
+:root {
+  --el-color-primary: #f2bd5c;
+  --el-color-primary-light-3: #f6d38c;
+  --el-color-primary-dark-2: #d79d39;
+  --el-bg-color: #171d25;
+  --el-bg-color-page: #101318;
+  --el-bg-color-overlay: #1b222c;
+  --el-fill-color-blank: #171d25;
+  --el-fill-color-light: #202833;
+  --el-fill-color: #252e3a;
+  --el-text-color-primary: #f2f5f8;
+  --el-text-color-regular: #c1cad5;
+  --el-text-color-secondary: #8491a2;
+  --el-border-color: #394654;
+  --el-border-color-light: #293442;
+  --el-border-radius-base: 6px;
+  --el-font-size-base: 14px;
+}
+
+html, body, #app { min-height: 100%; margin: 0; background: #101318; color: #f2f5f8; }
+body { font-family: Inter, "PingFang SC", "Microsoft YaHei", Arial, sans-serif; }
+* { box-sizing: border-box; }
+.el-container { min-width: 0; }
+.el-main { min-width: 0; }
+.el-card { --el-card-bg-color: #171d25; --el-card-border-color: #252e3a; color: #f2f5f8; }
+.el-input__wrapper { background: #1b222c; box-shadow: 0 0 0 1px #303b48 inset; }
+.el-input__wrapper:hover, .el-input__wrapper.is-focus { box-shadow: 0 0 0 1px #596a7e inset; }
+.el-input__inner { color: #f2f5f8; }
+.el-input__inner::placeholder { color: #778597; }
+.el-dialog { --el-dialog-bg-color: #171d25; }
+.el-dialog__title, .el-dialog__body { color: #f2f5f8; }
+.el-dialog__headerbtn .el-dialog__close { color: #8793a3; }
+.el-menu { border-right: 0; }
+.el-button + .el-button { margin-left: 0; }
+.el-divider { border-color: rgba(255, 255, 255, .08); }
+.el-tag { --el-tag-bg-color: #222b35; --el-tag-border-color: #344251; --el-tag-text-color: #b6c0cc; }
+.el-button--primary { --el-button-bg-color: #f2bd5c; --el-button-border-color: #f2bd5c; --el-button-text-color: #151a21; --el-button-hover-bg-color: #f6cc78; --el-button-hover-border-color: #f6cc78; --el-button-hover-text-color: #151a21; }
+.el-button--primary.is-plain { --el-button-text-color: #f2bd5c; --el-button-bg-color: rgba(242, 189, 92, .08); --el-button-border-color: rgba(242, 189, 92, .45); }
+.el-avatar { background: #303b48; }
+.text-center { text-align: center !important; }
+
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: #101318; }
+::-webkit-scrollbar-thumb { background: #303b48; border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: #46576a; }
