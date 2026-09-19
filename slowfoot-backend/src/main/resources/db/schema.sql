@@ -344,11 +344,11 @@ CREATE TABLE IF NOT EXISTS `work_comment` (
 
 
 -- -----------------------------------------------------------------------------
--- user_notification：站内通知
---   event_id 唯一，是通知自身的幂等键：persist 时靠 INSERT 撞唯一键来去重，
+-- user_notification：站内通知（按 user_id 分为 4 张物理表）
+--   (user_id, event_id) 唯一，是通知自身的幂等键：persist 时靠 INSERT 撞唯一键来去重，
 --   所以同一条业务事件重复投递不会产生两条通知。
 -- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS `user_notification` (
+CREATE TABLE IF NOT EXISTS `user_notification_0` (
     `id`          BIGINT       NOT NULL AUTO_INCREMENT,
     `is_deleted`  TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '逻辑删除：0 正常，1 删除',
     `gmt_created` DATETIME     NOT NULL COMMENT '创建时间，自动填充',
@@ -362,16 +362,19 @@ CREATE TABLE IF NOT EXISTS `user_notification` (
     `content`     VARCHAR(500) NOT NULL COMMENT '通知文案',
     `read_state`  TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '已读：0 未读，1 已读',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_user_notification_event` (`event_id`),
+    UNIQUE KEY `uk_user_notification_event` (`user_id`, `event_id`),
     KEY `idx_user_notification_user_read` (`user_id`, `read_state`, `gmt_created`),
     KEY `idx_user_notification_target` (`target_id`, `type`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = '站内通知';
+CREATE TABLE IF NOT EXISTS `user_notification_1` LIKE `user_notification_0`;
+CREATE TABLE IF NOT EXISTS `user_notification_2` LIKE `user_notification_0`;
+CREATE TABLE IF NOT EXISTS `user_notification_3` LIKE `user_notification_0`;
 
 
 -- -----------------------------------------------------------------------------
--- work_like：作品点赞
+-- work_like：作品点赞（按 work_id 分为 4 张物理表）
 -- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS `work_like` (
+CREATE TABLE IF NOT EXISTS `work_like_0` (
     `id`          BIGINT     NOT NULL AUTO_INCREMENT,
     `work_id`     BIGINT     NOT NULL COMMENT '作品 work.id',
     `user_id`     BIGINT     NULL COMMENT '点赞者 user.id',
@@ -381,15 +384,18 @@ CREATE TABLE IF NOT EXISTS `work_like` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `index_work_id_user_id` (`work_id`, `user_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = '作品点赞';
+CREATE TABLE IF NOT EXISTS `work_like_1` LIKE `work_like_0`;
+CREATE TABLE IF NOT EXISTS `work_like_2` LIKE `work_like_0`;
+CREATE TABLE IF NOT EXISTS `work_like_3` LIKE `work_like_0`;
 
 
 -- -----------------------------------------------------------------------------
--- work_share：作品分享记录
+-- work_share：作品分享记录（按 work_id 分为 4 张物理表）
 --   唯一键是 (work_id, ip)：同一 IP 对同一作品只计一次分享。
 --   ⚠️ 旧导出漏了 is_deleted，而对应实体继承 BaseEntity，
 --      MyBatis-Plus 会自动追加 is_deleted = 0，缺列会直接报错。
 -- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS `work_share` (
+CREATE TABLE IF NOT EXISTS `work_share_0` (
     `id`          BIGINT       NOT NULL AUTO_INCREMENT,
     `work_id`     BIGINT       NULL COMMENT '作品 work.id',
     `ip`          VARCHAR(255) NULL COMMENT '分享者 IP',
@@ -400,6 +406,9 @@ CREATE TABLE IF NOT EXISTS `work_share` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `index_work_id_ip` (`work_id`, `ip`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = '作品分享记录';
+CREATE TABLE IF NOT EXISTS `work_share_1` LIKE `work_share_0`;
+CREATE TABLE IF NOT EXISTS `work_share_2` LIKE `work_share_0`;
+CREATE TABLE IF NOT EXISTS `work_share_3` LIKE `work_share_0`;
 
 
 -- -----------------------------------------------------------------------------
@@ -433,10 +442,10 @@ CREATE TABLE IF NOT EXISTS `favorites` (
 
 
 -- -----------------------------------------------------------------------------
--- favorites_work：收藏夹内容
+-- favorites_work：收藏夹内容（按 user_id 分为 4 张物理表）
 --   不继承 BaseEntity，没有 is_deleted；取消收藏是物理删除。
 -- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS `favorites_work` (
+CREATE TABLE IF NOT EXISTS `favorites_work_0` (
     `id`           BIGINT NOT NULL AUTO_INCREMENT,
     `favorites_id` BIGINT NOT NULL COMMENT 'favorites.id',
     `work_id`      BIGINT NULL     COMMENT '作品 work.id',
@@ -444,6 +453,9 @@ CREATE TABLE IF NOT EXISTS `favorites_work` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `index_f_id_w_id_u_id` (`favorites_id`, `work_id`, `user_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = '收藏夹内容';
+CREATE TABLE IF NOT EXISTS `favorites_work_1` LIKE `favorites_work_0`;
+CREATE TABLE IF NOT EXISTS `favorites_work_2` LIKE `favorites_work_0`;
+CREATE TABLE IF NOT EXISTS `favorites_work_3` LIKE `favorites_work_0`;
 
 
 -- =============================================================================
@@ -524,7 +536,8 @@ CREATE TABLE IF NOT EXISTS `event_consume` (
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = '事件消费幂等表';
 
 
-CREATE TABLE IF NOT EXISTS `work_view_history` (
+-- work_view_history：浏览历史（按 user_id 分为 4 张物理表）
+CREATE TABLE IF NOT EXISTS `work_view_history_0` (
     `id`         BIGINT   NOT NULL AUTO_INCREMENT,
     `user_id`    BIGINT   NOT NULL COMMENT '用户 ID',
     `work_id`    BIGINT   NOT NULL COMMENT '作品 ID',
@@ -533,9 +546,13 @@ CREATE TABLE IF NOT EXISTS `work_view_history` (
     UNIQUE KEY `uk_work_view_history_user_work` (`user_id`, `work_id`),
     KEY `idx_work_view_history_user_time` (`user_id`, `viewed_at`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = '作品浏览历史';
+CREATE TABLE IF NOT EXISTS `work_view_history_1` LIKE `work_view_history_0`;
+CREATE TABLE IF NOT EXISTS `work_view_history_2` LIKE `work_view_history_0`;
+CREATE TABLE IF NOT EXISTS `work_view_history_3` LIKE `work_view_history_0`;
 
 
-CREATE TABLE IF NOT EXISTS `user_search_history` (
+-- user_search_history：搜索历史（按 user_id 分为 4 张物理表）
+CREATE TABLE IF NOT EXISTS `user_search_history_0` (
     `id`          BIGINT       NOT NULL AUTO_INCREMENT,
     `user_id`     BIGINT       NOT NULL COMMENT '用户 ID',
     `keyword`     VARCHAR(255) NOT NULL COMMENT '搜索关键词',
@@ -544,6 +561,9 @@ CREATE TABLE IF NOT EXISTS `user_search_history` (
     UNIQUE KEY `uk_user_search_history_user_keyword` (`user_id`, `keyword`),
     KEY `idx_user_search_history_user_time` (`user_id`, `searched_at`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = '用户搜索历史';
+CREATE TABLE IF NOT EXISTS `user_search_history_1` LIKE `user_search_history_0`;
+CREATE TABLE IF NOT EXISTS `user_search_history_2` LIKE `user_search_history_0`;
+CREATE TABLE IF NOT EXISTS `user_search_history_3` LIKE `user_search_history_0`;
 
 
 SET FOREIGN_KEY_CHECKS = 1;
