@@ -6,6 +6,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.hcz.constant.RedisKeys;
 import org.hcz.exception.LimiterException;
+import org.hcz.security.SecurityAuditLogger;
 import org.hcz.util.RedisCacheUtil;
 import org.hcz.util.UserHolder;
 import org.springframework.stereotype.Component;
@@ -17,10 +18,13 @@ public class LimiterAop {
 
     private final RedisCacheUtil redisCacheUtil;
     private final HttpServletRequest request;
+    private final SecurityAuditLogger securityAuditLogger;
 
-    public LimiterAop(RedisCacheUtil redisCacheUtil, HttpServletRequest request) {
+    public LimiterAop(RedisCacheUtil redisCacheUtil, HttpServletRequest request,
+                      SecurityAuditLogger securityAuditLogger) {
         this.redisCacheUtil = redisCacheUtil;
         this.request = request;
+        this.securityAuditLogger = securityAuditLogger;
     }
 
     @Around("@annotation(limit)")
@@ -43,6 +47,7 @@ public class LimiterAop {
             throw new IllegalStateException("Unable to initialize rate limit window");
         }
         if (count > limit.limit()) {
+            securityAuditLogger.rateLimitExceeded(UserHolder.get(), bucket);
             throw new LimiterException(limit.msg());
         }
         return joinPoint.proceed();

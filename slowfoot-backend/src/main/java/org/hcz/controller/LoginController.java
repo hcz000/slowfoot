@@ -7,6 +7,7 @@ import org.hcz.entity.vo.RegisterVO;
 import org.hcz.entity.vo.RefreshTokenVO;
 import org.hcz.exception.AppException;
 import org.hcz.exception.ErrorCode;
+import org.hcz.security.SecurityAuditLogger;
 import org.hcz.service.auth.LoginService;
 import org.hcz.service.user.UserService;
 import org.hcz.util.JwtUtils;
@@ -34,6 +35,9 @@ public class LoginController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private SecurityAuditLogger securityAuditLogger;
+
 
 // 登录
 // @param user
@@ -41,7 +45,13 @@ public class LoginController {
 
     @PostMapping
     public ApiResponse login(@RequestBody @Validated User user){
-        user = loginService.login(user);
+        try {
+            user = loginService.login(user);
+        } catch (AppException exception) {
+            securityAuditLogger.authenticationFailed("login", null, exception.getErrorCode().name());
+            throw exception;
+        }
+        securityAuditLogger.authenticationSucceeded("login", user.getId());
         // 登录成功，生成token
         return ApiResponse.ok().data(tokenResponse(user));
     }
@@ -50,12 +60,15 @@ public class LoginController {
     public ApiResponse refresh(@RequestBody @Validated RefreshTokenVO request) {
         Long userId = JwtUtils.getRefreshUserId(request.getRefreshToken());
         if (userId == null) {
+            securityAuditLogger.authenticationFailed("token_refresh", null, "invalid_refresh_token");
             throw new AppException(ErrorCode.UNAUTHENTICATED, "刷新令牌无效或已过期");
         }
         User user = userService.getById(userId);
         if (ObjectUtils.isEmpty(user)) {
+            securityAuditLogger.authenticationFailed("token_refresh", userId, "user_not_found");
             throw new AppException(ErrorCode.UNAUTHENTICATED, "用户不存在");
         }
+        securityAuditLogger.authenticationSucceeded("token_refresh", userId);
         return ApiResponse.ok().data(tokenResponse(user));
     }
 
@@ -116,6 +129,7 @@ public class LoginController {
         if (!loginService.register(registerVO)) {
             throw new AppException(ErrorCode.CAPTCHA_INVALID, "注册失败，验证码错误");
         }
+        securityAuditLogger.accountChanged("register", null);
         return ApiResponse.ok().message("注册成功");
     }
 
@@ -130,6 +144,7 @@ public class LoginController {
         if (!b) {
             throw new AppException(ErrorCode.CAPTCHA_INVALID, "验证码不正确");
         }
+        securityAuditLogger.accountChanged("password_reset", null);
         return ApiResponse.ok().message("修改成功");
     }
 

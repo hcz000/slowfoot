@@ -1,7 +1,5 @@
 package org.hcz.config;
 
-import org.hcz.service.user.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -11,13 +9,16 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    @Autowired
-    private UserService userService;
+    private final AdminInterceptor adminInterceptor;
+
+    public WebConfig(AdminInterceptor adminInterceptor) {
+        this.adminInterceptor = adminInterceptor;
+    }
 
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new AdminInterceptor(userService))
+        registry.addInterceptor(adminInterceptor)
                 .addPathPatterns("/admin/**","/authorize/**")
                 .addPathPatterns("/luckyjourney/**")
                 .excludePathPatterns("/luckyjourney/login/**","/luckyjourney/index/**","/luckyjourney/cdn/**");

@@ -3,6 +3,7 @@ package org.hcz.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hcz.entity.user.User;
 import org.hcz.exception.ErrorCode;
+import org.hcz.security.SecurityAuditLogger;
 import org.hcz.util.UserHolder;
 import org.hcz.service.user.UserService;
 import org.hcz.util.JwtUtils;
@@ -21,9 +22,11 @@ public class AdminInterceptor implements HandlerInterceptor {
     private ObjectMapper objectMapper = new ObjectMapper();
 
     private UserService userService;
+    private final SecurityAuditLogger securityAuditLogger;
 
-   public AdminInterceptor(UserService userService){
+   public AdminInterceptor(UserService userService, SecurityAuditLogger securityAuditLogger){
        this.userService = userService;
+       this.securityAuditLogger = securityAuditLogger;
    }
 
     @Override
@@ -35,6 +38,7 @@ public class AdminInterceptor implements HandlerInterceptor {
         }
 
         if (!JwtUtils.checkAccessToken(request)) {
+            securityAuditLogger.authenticationFailed("access_token", null, "invalid_access_token");
             response(ApiResponse.error(ErrorCode.UNAUTHENTICATED).message("请登录后再操作"), response,
                     ErrorCode.UNAUTHENTICATED.getHttpStatus().value());
             return false;
@@ -43,6 +47,7 @@ public class AdminInterceptor implements HandlerInterceptor {
         final Long userId = JwtUtils.getUserId(request);
         final User user = userService.getById(userId);
         if (ObjectUtils.isEmpty(user)){
+            securityAuditLogger.authenticationFailed("access_token", userId, "user_not_found");
             response(ApiResponse.error(ErrorCode.UNAUTHENTICATED).message("用户不存在"), response,
                     ErrorCode.UNAUTHENTICATED.getHttpStatus().value());
             return false;

@@ -7,6 +7,7 @@ import org.hcz.constant.RedisKeys;
 import org.hcz.exception.LimiterException;
 import org.hcz.limit.Limit;
 import org.hcz.limit.LimiterAop;
+import org.hcz.security.SecurityAuditLogger;
 import org.hcz.util.RedisCacheUtil;
 import org.hcz.util.UserHolder;
 import org.junit.jupiter.api.AfterEach;
@@ -33,6 +34,7 @@ class LimitFrameworkTests {
         ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
         Signature signature = mock(Signature.class);
         Limit limit = limit(2, 60, "");
+        SecurityAuditLogger securityAuditLogger = mock(SecurityAuditLogger.class);
         String key = RedisKeys.WORK_LIMIT + ":ExampleController:publish:42";
 
         UserHolder.set(42L);
@@ -43,7 +45,7 @@ class LimitFrameworkTests {
         when(redis.expire(key, 60)).thenReturn(true);
         when(joinPoint.proceed()).thenReturn("ok");
 
-        Object result = new LimiterAop(redis, request).restriction(joinPoint, limit);
+        Object result = new LimiterAop(redis, request, securityAuditLogger).restriction(joinPoint, limit);
 
         assertEquals("ok", result);
         verify(redis).expire(key, 60);
@@ -56,13 +58,15 @@ class LimitFrameworkTests {
         HttpServletRequest request = mock(HttpServletRequest.class);
         ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
         Limit limit = limit(2, 60, "custom");
+        SecurityAuditLogger securityAuditLogger = mock(SecurityAuditLogger.class);
 
         UserHolder.set(42L);
         when(redis.incr("custom:42", 1)).thenReturn(3L);
 
         LimiterException exception = assertThrows(LimiterException.class,
-                () -> new LimiterAop(redis, request).restriction(joinPoint, limit));
+                () -> new LimiterAop(redis, request, securityAuditLogger).restriction(joinPoint, limit));
         assertEquals("too many", exception.getMessage());
+        verify(securityAuditLogger).rateLimitExceeded(42L, "custom");
         verify(joinPoint, never()).proceed();
     }
 
