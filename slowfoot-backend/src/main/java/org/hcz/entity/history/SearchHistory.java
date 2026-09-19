@@ -11,7 +11,7 @@ import java.util.Date;
 @TableName("user_search_history")
 public class SearchHistory {
 
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
     private Long userId;
     private String keyword;

@@ -10,7 +10,7 @@ import java.util.Date;
 // 基础实体类
 @Data public class BaseEntity implements Serializable {
 
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
 
 

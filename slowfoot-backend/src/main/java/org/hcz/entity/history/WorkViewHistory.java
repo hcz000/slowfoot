@@ -11,7 +11,7 @@ import java.util.Date;
 @TableName("work_view_history")
 public class WorkViewHistory {
 
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
     private Long userId;
     private Long workId;
