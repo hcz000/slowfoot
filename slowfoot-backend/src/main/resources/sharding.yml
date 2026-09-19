@@ -1,5 +1,10 @@
 databaseName: slowfoot
 
+mode:
+  type: Standalone
+  repository:
+    type: Memory
+
 dataSources:
   ds_0:
     dataSourceClassName: com.zaxxer.hikari.HikariDataSource
