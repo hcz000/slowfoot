@@ -3,6 +3,7 @@ package org.luckyjourney;
 import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
+import org.hcz.constant.RedisKeys;
 import org.hcz.exception.LimiterException;
 import org.hcz.limit.Limit;
 import org.hcz.limit.LimiterAop;
@@ -32,19 +33,20 @@ class LimitFrameworkTests {
         ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
         Signature signature = mock(Signature.class);
         Limit limit = limit(2, 60, "");
+        String key = RedisKeys.WORK_LIMIT + ":ExampleController:publish:42";
 
         UserHolder.set(42L);
         when(joinPoint.getSignature()).thenReturn(signature);
         when(signature.getDeclaringTypeName()).thenReturn("ExampleController");
         when(signature.getName()).thenReturn("publish");
-        when(redis.incr("work:limit:ExampleController:publish:42", 1)).thenReturn(1L);
-        when(redis.expire("work:limit:ExampleController:publish:42", 60)).thenReturn(true);
+        when(redis.incr(key, 1)).thenReturn(1L);
+        when(redis.expire(key, 60)).thenReturn(true);
         when(joinPoint.proceed()).thenReturn("ok");
 
         Object result = new LimiterAop(redis, request).restriction(joinPoint, limit);
 
         assertEquals("ok", result);
-        verify(redis).expire("work:limit:ExampleController:publish:42", 60);
+        verify(redis).expire(key, 60);
         verify(joinPoint).proceed();
     }
 
