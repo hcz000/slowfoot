@@ -44,7 +44,9 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
         final boolean result = remove(new LambdaQueryWrapper<Favorites>().eq(Favorites::getId, id).eq(Favorites::getUserId, userId));
         // 如果能删除成功说明是自己的收藏夹
         if (result){
-            favoritesWorkService.remove(new LambdaQueryWrapper<FavoritesWork>().eq(FavoritesWork::getFavoritesId,id));
+            favoritesWorkService.remove(new LambdaQueryWrapper<FavoritesWork>()
+                    .eq(FavoritesWork::getFavoritesId, id)
+                    .eq(FavoritesWork::getUserId, userId));
         }else {
             throw new AppException(ErrorCode.FORBIDDEN, "无权删除其他用户的收藏夹");
         }
@@ -57,7 +59,9 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
         if (ObjectUtils.isEmpty(favorites)) return Collections.emptyList();
         // 根据收藏夹id获取对应数
         final List<Long> fIds = favorites.stream().map(Favorites::getId).collect(Collectors.toList());
-        final Map<Long, Long> fMap = favoritesWorkService.list(new LambdaQueryWrapper<FavoritesWork>().in(FavoritesWork::getFavoritesId, fIds))
+        final Map<Long, Long> fMap = favoritesWorkService.list(new LambdaQueryWrapper<FavoritesWork>()
+                        .in(FavoritesWork::getFavoritesId, fIds)
+                        .eq(FavoritesWork::getUserId, userId))
                 .stream().collect(Collectors.groupingBy(FavoritesWork::getFavoritesId,
                         Collectors.counting()));
         // 计算对应作品总数
@@ -80,7 +84,9 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
             throw new AppException(ErrorCode.RESOURCE_NOT_FOUND, "收藏夹不存在");
         }
 
-        final List<Long> videoIds = favoritesWorkService.list(new LambdaQueryWrapper<FavoritesWork>().eq(FavoritesWork::getFavoritesId, favoritesId))
+        final List<Long> videoIds = favoritesWorkService.list(new LambdaQueryWrapper<FavoritesWork>()
+                        .eq(FavoritesWork::getFavoritesId, favoritesId)
+                        .eq(FavoritesWork::getUserId, userId))
                 .stream().map(FavoritesWork::getWorkId).collect(Collectors.toList());
 
         return videoIds;

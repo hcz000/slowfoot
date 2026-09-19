@@ -19,11 +19,12 @@ public class WorkLikeServiceImpl extends ServiceImpl<WorkLikeMapper, WorkLike> i
     @Override
     public boolean like(WorkLike workLike) {
         try {
-            // 添加概率
             this.save(workLike);
         }catch (DuplicateKeyException e){
-            // 存在则取消点赞
-            this.remove(new LambdaQueryWrapper<WorkLike>().eq(WorkLike::getWorkId, workLike.getWorkId()).eq(WorkLike::getUserId, workLike.getUserId()));
+            // A soft-deleted row still occupies the unique key, so toggles use a physical delete.
+            if (baseMapper.hardDelete(workLike.getWorkId(), workLike.getUserId()) != 1) {
+                throw e;
+            }
             return false;
         }
         return true;
