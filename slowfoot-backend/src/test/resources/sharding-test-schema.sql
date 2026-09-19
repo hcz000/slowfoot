@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS test_event_0 (
+    id BIGINT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    payload VARCHAR(64) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS test_event_1 (
+    id BIGINT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    payload VARCHAR(64) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS test_event_2 (
+    id BIGINT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    payload VARCHAR(64) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS test_event_3 (
+    id BIGINT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    payload VARCHAR(64) NOT NULL
+);

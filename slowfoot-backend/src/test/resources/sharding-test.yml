@@ -1,0 +1,39 @@
+databaseName: sharding_contract
+
+mode:
+  type: Standalone
+  repository:
+    type: Memory
+
+dataSources:
+  ds_0:
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+    driverClassName: org.h2.Driver
+    jdbcUrl: "jdbc:h2:mem:sharding_contract;MODE=MYSQL;IGNORECASE=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_DELAY=-1;INIT=RUNSCRIPT FROM 'classpath:sharding-test-schema.sql'"
+    username: sa
+    password:
+
+rules:
+  - !SHARDING
+    tables:
+      test_event:
+        actualDataNodes: ds_0.test_event_$->{0..3}
+        tableStrategy:
+          standard:
+            shardingColumn: user_id
+            shardingAlgorithmName: test_event_mod_4
+        auditStrategy:
+          auditorNames:
+            - sharding_key_required
+          allowHintDisable: false
+    shardingAlgorithms:
+      test_event_mod_4:
+        type: INLINE
+        props:
+          algorithm-expression: test_event_$->{user_id % 4}
+    auditors:
+      sharding_key_required:
+        type: DML_SHARDING_CONDITIONS
+
+props:
+  sql-show: false
