@@ -1,0 +1,25 @@
+spring:
+  config:
+    activate:
+      on-profile: observability
+  application:
+    name: slowfoot-backend
+
+logging:
+  file:
+    name: ${LOG_FILE:logs/slowfoot-backend.json}
+  structured:
+    format:
+      file: ecs
+    ecs:
+      service:
+        name: ${spring.application.name}
+        version: ${APP_VERSION:dev}
+        environment: ${APP_ENVIRONMENT:local}
+        node-name: ${HOSTNAME:${COMPUTERNAME:unknown}}
+  logback:
+    rollingpolicy:
+      file-name-pattern: ${LOG_FILE:logs/slowfoot-backend.json}.%d{yyyy-MM-dd}.%i.gz
+      max-file-size: ${LOG_MAX_FILE_SIZE:50MB}
+      max-history: ${LOG_MAX_HISTORY:14}
+      total-size-cap: ${LOG_TOTAL_SIZE_CAP:2GB}
