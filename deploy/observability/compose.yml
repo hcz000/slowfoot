@@ -1,0 +1,21 @@
+services:
+  vector:
+    image: timberio/vector:0.58.0-debian
+    container_name: slowfoot-vector
+    restart: unless-stopped
+    environment:
+      OPENOBSERVE_URL: ${OPENOBSERVE_URL:-http://host.docker.internal:5080}
+      OPENOBSERVE_ORG: ${OPENOBSERVE_ORG:-default}
+      OPENOBSERVE_STREAM: ${OPENOBSERVE_STREAM:-slowfoot}
+      OPENOBSERVE_USER: ${OPENOBSERVE_USER:?Set OPENOBSERVE_USER in .env}
+      OPENOBSERVE_PASSWORD: ${OPENOBSERVE_PASSWORD:?Set OPENOBSERVE_PASSWORD in .env}
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    volumes:
+      - ${SLOWFOOT_LOG_DIR:-../../slowfoot-backend/logs}:/var/log/slowfoot:ro
+      - ./vector.yaml:/etc/vector/vector.yaml:ro
+      - vector-data:/var/lib/vector
+    command: ["--config", "/etc/vector/vector.yaml"]
+
+volumes:
+  vector-data:

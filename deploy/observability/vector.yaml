@@ -1,0 +1,49 @@
+data_dir: /var/lib/vector
+
+sources:
+  slowfoot_logs:
+    type: file
+    include:
+      - /var/log/slowfoot/slowfoot-backend.json
+    read_from: end
+
+transforms:
+  parse_ecs:
+    type: remap
+    inputs:
+      - slowfoot_logs
+    source: |-
+      parsed, err = parse_json(.message)
+      if err == null {
+        . = merge(., parsed)
+        del(.message)
+      } else {
+        .labels.parse_error = true
+      }
+      .collector.name = "vector"
+
+sinks:
+  openobserve:
+    type: http
+    inputs:
+      - parse_ecs
+    uri: ${OPENOBSERVE_URL}/api/${OPENOBSERVE_ORG}/${OPENOBSERVE_STREAM}/_json
+    method: post
+    auth:
+      strategy: basic
+      user: ${OPENOBSERVE_USER}
+      password: ${OPENOBSERVE_PASSWORD}
+    compression: gzip
+    encoding:
+      codec: json
+      timestamp_format: rfc3339
+    healthcheck:
+      enabled: true
+      uri: ${OPENOBSERVE_URL}/healthz
+    batch:
+      max_events: 500
+      timeout_secs: 1
+    buffer:
+      type: disk
+      max_size: 268435488
+      when_full: block
