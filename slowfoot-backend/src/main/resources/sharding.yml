@@ -1,0 +1,93 @@
+databaseName: slowfoot
+
+dataSources:
+  ds_0:
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+    driverClassName: com.p6spy.engine.spy.P6SpyDriver
+    jdbcUrl: 'jdbc:p6spy:mysql://$${DATASOURCE_HOST::127.0.0.1:3306}/$${DATASOURCE_NAME::lucky-journey}?serverTimezone=GMT%2B8'
+    username: '$${DATASOURCE_USER::root}'
+    password: '$${DATASOURCE_PASSWORD::123456}'
+
+rules:
+  - !SHARDING
+    tables:
+      work_like:
+        actualDataNodes: ds_0.work_like_$->{0..3}
+        tableStrategy:
+          standard:
+            shardingColumn: work_id
+            shardingAlgorithmName: work_like_mod_4
+        auditStrategy: &required_sharding_key
+          auditorNames:
+            - sharding_key_required
+          allowHintDisable: false
+      work_share:
+        actualDataNodes: ds_0.work_share_$->{0..3}
+        tableStrategy:
+          standard:
+            shardingColumn: work_id
+            shardingAlgorithmName: work_share_mod_4
+        auditStrategy: *required_sharding_key
+      favorites_work:
+        actualDataNodes: ds_0.favorites_work_$->{0..3}
+        tableStrategy:
+          standard:
+            shardingColumn: user_id
+            shardingAlgorithmName: favorites_work_mod_4
+        auditStrategy: *required_sharding_key
+      user_notification:
+        actualDataNodes: ds_0.user_notification_$->{0..3}
+        tableStrategy:
+          standard:
+            shardingColumn: user_id
+            shardingAlgorithmName: user_notification_mod_4
+        auditStrategy: *required_sharding_key
+      work_view_history:
+        actualDataNodes: ds_0.work_view_history_$->{0..3}
+        tableStrategy:
+          standard:
+            shardingColumn: user_id
+            shardingAlgorithmName: work_view_history_mod_4
+        auditStrategy: *required_sharding_key
+      user_search_history:
+        actualDataNodes: ds_0.user_search_history_$->{0..3}
+        tableStrategy:
+          standard:
+            shardingColumn: user_id
+            shardingAlgorithmName: user_search_history_mod_4
+        auditStrategy: *required_sharding_key
+    shardingAlgorithms:
+      work_like_mod_4:
+        type: INLINE
+        props:
+          algorithm-expression: work_like_$->{work_id % 4}
+      work_share_mod_4:
+        type: INLINE
+        props:
+          algorithm-expression: work_share_$->{work_id % 4}
+      favorites_work_mod_4:
+        type: INLINE
+        props:
+          algorithm-expression: favorites_work_$->{user_id % 4}
+      user_notification_mod_4:
+        type: INLINE
+        props:
+          algorithm-expression: user_notification_$->{user_id % 4}
+      work_view_history_mod_4:
+        type: INLINE
+        props:
+          algorithm-expression: work_view_history_$->{user_id % 4}
+      user_search_history_mod_4:
+        type: INLINE
+        props:
+          algorithm-expression: user_search_history_$->{user_id % 4}
+    auditors:
+      sharding_key_required:
+        type: DML_SHARDING_CONDITIONS
+  - !SINGLE
+    tables:
+      - ds_0.*
+    defaultDataSource: ds_0
+
+props:
+  sql-show: '$${SHARDING_SQL_SHOW::false}'
