@@ -20,29 +20,29 @@ transforms:
       } else {
         .labels.parse_error = true
       }
-      if exists(."log.level") {
-        .log_level = ."log.level"
+      if exists(.log.level) {
+        .log_level = .log.level
       }
-      if exists(."service.name") {
-        .service_name = ."service.name"
+      if exists(.service.name) {
+        .service_name = .service.name
       }
-      if exists(."service.environment") {
-        .service_environment = ."service.environment"
+      if exists(.service.environment) {
+        .service_environment = .service.environment
       }
-      if exists(."process.thread.name") {
-        .thread_name = ."process.thread.name"
+      if exists(.process.thread.name) {
+        .thread_name = .process.thread.name
       }
-      if exists(."error.type") {
-        .error_type = ."error.type"
+      if exists(.error.type) {
+        .error_type = .error.type
       }
-      if exists(."error.stack_trace") {
-        .error_stack_trace = ."error.stack_trace"
+      if exists(.error.stack_trace) {
+        .error_stack_trace = .error.stack_trace
       }
       if exists(.requestId) {
         .request_id = .requestId
       }
-      if exists(."log.logger") {
-        .logger_name = ."log.logger"
+      if exists(.log.logger) {
+        .logger_name = .log.logger
       }
       .collector.name = "vector"
 
