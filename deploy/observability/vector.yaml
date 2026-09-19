@@ -38,6 +38,12 @@ transforms:
       if exists(."error.stack_trace") {
         .error_stack_trace = ."error.stack_trace"
       }
+      if exists(.requestId) {
+        .request_id = .requestId
+      }
+      if exists(."log.logger") {
+        .logger_name = ."log.logger"
+      }
       .collector.name = "vector"
 
 sinks:
