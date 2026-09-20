@@ -1,4 +1,4 @@
-package org.hcz.authority;
+package org.hcz.security.access;
 
 import java.util.Collection;
 import java.util.Collections;

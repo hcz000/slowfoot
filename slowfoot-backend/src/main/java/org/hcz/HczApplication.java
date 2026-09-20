@@ -1,6 +1,6 @@
 package org.hcz;
 
-import org.hcz.authority.AuthStore;
+import org.hcz.security.access.AuthStore;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

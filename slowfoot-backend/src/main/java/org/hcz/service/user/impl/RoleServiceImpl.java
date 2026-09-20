@@ -3,7 +3,7 @@ package org.hcz.service.user.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import org.hcz.authority.AuthStore;
+import org.hcz.security.access.AuthStore;
 import org.hcz.entity.user.Role;
 import org.hcz.entity.user.RolePermission;
 import org.hcz.entity.user.Tree;

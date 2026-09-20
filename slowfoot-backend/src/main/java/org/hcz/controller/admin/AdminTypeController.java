@@ -2,7 +2,7 @@ package org.hcz.controller.admin;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import org.hcz.authority.Auth;
+import org.hcz.security.access.Auth;
 import org.hcz.entity.work.WorkCategory;
 import org.hcz.entity.vo.BasePage;
 import org.hcz.exception.AppException;

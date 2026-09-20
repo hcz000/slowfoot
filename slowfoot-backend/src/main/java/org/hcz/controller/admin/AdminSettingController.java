@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.hcz.authority.Auth;
+import org.hcz.security.access.Auth;
 import org.hcz.config.LocalCache;
 import org.hcz.entity.Setting;
 import org.hcz.entity.json.SettingScoreJson;

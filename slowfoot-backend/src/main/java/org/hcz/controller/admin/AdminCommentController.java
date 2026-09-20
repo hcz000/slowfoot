@@ -1,6 +1,6 @@
 package org.hcz.controller.admin;
 
-import org.hcz.authority.Auth;
+import org.hcz.security.access.Auth;
 import org.hcz.entity.vo.BasePage;
 import org.hcz.entity.vo.CommentAuditRequest;
 import org.hcz.service.work.comment.WorkCommentService;

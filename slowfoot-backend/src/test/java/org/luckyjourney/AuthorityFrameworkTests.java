@@ -1,6 +1,6 @@
 package org.luckyjourney;
 
-import org.hcz.authority.AuthStore;
+import org.hcz.security.access.AuthStore;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 

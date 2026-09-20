@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import org.hcz.authority.Auth;
+import org.hcz.security.access.Auth;
 import org.hcz.entity.user.Role;
 import org.hcz.entity.user.RolePermission;
 import org.hcz.entity.user.Tree;

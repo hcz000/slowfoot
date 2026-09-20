@@ -1,7 +1,7 @@
 package org.hcz.service.user.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import org.hcz.authority.AuthStore;
+import org.hcz.security.access.AuthStore;
 import org.hcz.entity.user.*;
 import org.hcz.entity.user.*;
 import org.hcz.mapper.user.PermissionMapper;

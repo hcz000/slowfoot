@@ -3,7 +3,7 @@ package org.hcz.controller.admin;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 
 
-import org.hcz.authority.Auth;
+import org.hcz.security.access.Auth;
 import org.hcz.entity.user.Permission;
 import org.hcz.util.UserHolder;
 import org.hcz.service.user.PermissionService;
