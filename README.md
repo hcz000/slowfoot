@@ -6,7 +6,7 @@
 
 ```text
 慢脚/
-├── luckyjourney/       Spring Boot 后端
+├── slowfoot-backend/   Spring Boot 后端
 ├── slowfoot-frontend/  Vue 3 前端
 ├── docs/               架构和设计文档
 ├── image/              项目截图
@@ -16,7 +16,7 @@
 
 ## 技术栈
 
-后端使用 Java 21、Spring Boot 3、MyBatis-Plus、MySQL、Redis、RocketMQ、阿里云 OSS 和内容安全服务。前端使用 Vue 3、Vite、Vue Router、Pinia、Element Plus、Axios 和 Video.js。
+后端使用 Java 21、Spring Boot 3、MyBatis-Plus、ShardingSphere-JDBC、MySQL、Redis、RocketMQ、阿里云 OSS 和内容安全服务。前端使用 Vue 3、Vite、Vue Router、Pinia、Element Plus、Axios 和 Video.js。
 
 ## 核心能力
 
@@ -46,25 +46,27 @@
 新环境执行：
 
 ```bash
-mysql -uroot -p lucky-journey < luckyjourney/src/main/resources/db/schema.sql
+mysql -uroot -p lucky-journey < slowfoot-backend/src/main/resources/db/schema.sql
 ```
 
 已有数据库执行增量迁移：
 
 ```bash
-mysql -uroot -p lucky-journey < luckyjourney/src/main/resources/db/migration/20260918_cache_history.sql
+mysql -uroot -p lucky-journey < slowfoot-backend/src/main/resources/db/migration/20260918_cache_history.sql
 ```
 
 该迁移新增 `work_view_history` 和 `user_search_history`，用于在 Redis 不可用时恢复浏览历史和搜索历史。
 
+需要启用 4 路水平分表时，按照[四分表迁移操作手册](slowfoot-backend/docs/sharding-rollout.md)依次建表、回填和校验，再启用 `sharding` profile。未启用该 profile 时仍使用原逻辑表。
+
 ### 启动后端
 
 ```powershell
-cd luckyjourney
+cd slowfoot-backend
 ./mvnw.cmd spring-boot:run
 ```
 
-默认端口为 `8882`。也可以执行 `./mvnw.cmd clean package` 后运行 `target/hcz-0.0.1-SNAPSHOT.jar`。
+默认端口为 `8882`。也可以执行 `./mvnw.cmd clean package` 后运行 `target/slowfoot-backend-0.0.1-SNAPSHOT.jar`。
 
 ### 启动前端
 
@@ -76,7 +78,9 @@ npm run dev
 
 ## 配置
 
-后端配置位于 `luckyjourney/src/main/resources/application.yml`。生产环境应通过环境变量配置数据库、Redis、RocketMQ、JWT、OSS 和邮件服务，不要提交真实密钥。
+后端配置位于 `slowfoot-backend/src/main/resources/application.yml`。生产环境应通过环境变量配置数据库、Redis、RocketMQ、JWT、OSS 和邮件服务，不要提交真实密钥。
+
+后端访问控制统一放在 `org.hcz.security.access`，包含 JWT/RBAC 权限切面和基于 Redis 的接口限流。安全拒绝和限流事件通过结构化日志输出，可由 OpenObserve 集中检索和告警。
 
 RocketMQ 默认使用互动事件、通知、审核提交和审核完成主题。互动事件由独立消费组更新热榜和推荐模型。
 
@@ -85,7 +89,7 @@ Redis Key 当前使用 `v2:` 命名空间。作品、互动关系、评论、通
 ## 测试和构建
 
 ```powershell
-cd luckyjourney
+cd slowfoot-backend
 ./mvnw.cmd -DskipTests compile
 ./mvnw.cmd test
 
@@ -96,7 +100,9 @@ npm run build
 ## 文档
 
 - [架构设计文档](docs/架构设计文档.md)
-- [后端 README](luckyjourney/README.md)
+- [后端 README](slowfoot-backend/README.md)
+- [四分表迁移操作手册](slowfoot-backend/docs/sharding-rollout.md)
+- [可观测性与 OpenObserve](docs/observability.md)
 - [前端项目说明](slowfoot-frontend/README.md)
 - [贡献指南](CONTRIBUTING.md)
 

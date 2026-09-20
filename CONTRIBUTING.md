@@ -25,7 +25,7 @@
 git clone <repository-url>
 cd lucky-journey
 
-cd luckyjourney
+cd slowfoot-backend
 ./mvnw test
 
 cd ../slowfoot-frontend
@@ -35,7 +35,7 @@ npm run build
 
 Windows 使用 `mvnw.cmd` 替代 `mvnw`。
 
-已有数据库需要先执行 `luckyjourney/src/main/resources/db/migration/20260918_cache_history.sql`，新数据库执行 `schema.sql`。
+已有数据库需要先执行 `slowfoot-backend/src/main/resources/db/migration/20260918_cache_history.sql`，新数据库执行 `schema.sql`。启用 `sharding` profile 前必须按照[四分表迁移操作手册](slowfoot-backend/docs/sharding-rollout.md)完成建表、回填和校验。
 
 ## 修改原则
 
@@ -45,6 +45,8 @@ Windows 使用 `mvnw.cmd` 替代 `mvnw`。
 - 修改缓存 Key、序列化格式或消息字段时，必须考虑旧数据、旧消费者和回滚方案。
 - 数据库结构变更必须同时更新初始化脚本和增量迁移脚本。
 - 涉及事务、异步任务或 RocketMQ 消费时，说明幂等、重试和失败后的恢复方式。
+- 事件、消息、发布器和消费者放在 `org.hcz.messaging.<功能>`，由对应功能包维护自己的 Topic 和消费组常量。
+- RBAC 鉴权、权限快照和接口限流统一放在 `org.hcz.security.access`。
 - 不要为了小功能随意引入新的框架或跨模块全局状态。
 
 ## 测试要求
@@ -52,7 +54,7 @@ Windows 使用 `mvnw.cmd` 替代 `mvnw`。
 后端至少执行：
 
 ```bash
-cd luckyjourney
+cd slowfoot-backend
 ./mvnw -DskipTests compile
 ./mvnw test
 ```
