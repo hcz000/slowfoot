@@ -6,7 +6,7 @@ import org.hcz.constant.NotificationType;
 import org.hcz.entity.response.AuditResponse;
 import org.hcz.entity.work.Work;
 import org.hcz.entity.work.WorkComment;
-import org.hcz.event.audit.CommentAuditSubmittedEvent;
+import org.hcz.messaging.commentaudit.CommentAuditSubmittedEvent;
 import org.hcz.exception.AppException;
 import org.hcz.exception.ErrorCode;
 import org.hcz.mapper.audit.EventConsumeMapper;

@@ -1,10 +1,7 @@
-package org.hcz.listener.audit;
+package org.hcz.messaging.commentaudit;
 
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
-import org.hcz.event.audit.CommentAuditSubmittedEvent;
-import org.hcz.event.mq.CommentAuditSubmittedMessage;
-import org.hcz.event.mq.RocketMQTopics;
 import org.hcz.service.audit.CommentAuditService;
 import org.hcz.service.audit.CommentAuditTaskService;
 import org.slf4j.Logger;
@@ -14,8 +11,8 @@ import org.springframework.stereotype.Component;
 // 评论审核完成事件监听器
 @Component
 @RocketMQMessageListener(
-        topic = RocketMQTopics.AUDIT_SUBMITTED,
-        selectorExpression = RocketMQTopics.COMMENT_AUDIT_TAG,
+        topic = CommentAuditMessaging.SUBMITTED_TOPIC,
+        selectorExpression = CommentAuditMessaging.COMMENT_AUDIT_TAG,
         consumerGroup = "${rocketmq.consumer.groups.comment-audit}")
 public class CommentAuditEventListener implements RocketMQListener<CommentAuditSubmittedMessage> {
 
