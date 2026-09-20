@@ -5,7 +5,7 @@ import org.hcz.entity.vo.BasePage;
 import org.hcz.entity.vo.ImageWorkPublishRequest;
 import org.hcz.entity.vo.TextWorkPublishRequest;
 import org.hcz.entity.vo.VideoWorkPublishRequest;
-import org.hcz.limit.Limit;
+import org.hcz.security.access.Limit;
 import org.hcz.service.file.AliyunOssFileService;
 import org.hcz.service.work.WorkService;
 import org.hcz.util.ApiResponse;

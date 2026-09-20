@@ -1,4 +1,4 @@
-package org.hcz.limit;
+package org.hcz.security.access;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.ProceedingJoinPoint;
