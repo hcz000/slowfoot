@@ -1,19 +1,17 @@
-package org.hcz.listener.recommendation;
+package org.hcz.messaging.workinteraction;
 
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.hcz.entity.vo.Model;
 import org.hcz.entity.vo.UserModel;
-import org.hcz.event.mq.RocketMQTopics;
-import org.hcz.event.mq.WorkInteractionMessage;
 import org.hcz.service.recommendation.InterestPushService;
 import org.springframework.stereotype.Component;
 
 // 推荐事件监听器
 @Component
 @RocketMQMessageListener(
-        topic = RocketMQTopics.WORK_INTERACTION,
-        selectorExpression = RocketMQTopics.INTERACTION_TAG,
+        topic = WorkInteractionMessaging.TOPIC,
+        selectorExpression = WorkInteractionMessaging.INTERACTION_TAG,
         consumerGroup = "${rocketmq.consumer.groups.recommendation}")
 public class RecommendationEventListener implements RocketMQListener<WorkInteractionMessage> {
 

@@ -1,8 +1,7 @@
-package org.hcz.listener.work;
+package org.hcz.messaging.workinteraction;
 
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import org.hcz.entity.work.Work;
-import org.hcz.event.work.WorkInteractionEvent;
 import org.hcz.mapper.work.WorkMapper;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;

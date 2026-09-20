@@ -1,12 +1,10 @@
-package org.hcz.listener.work;
+package org.hcz.messaging.workinteraction;
 
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.hcz.constant.AuditStatus;
 import org.hcz.entity.vo.WorkRankItem;
 import org.hcz.entity.work.Work;
-import org.hcz.event.mq.RocketMQTopics;
-import org.hcz.event.mq.WorkInteractionMessage;
 import org.hcz.mapper.work.WorkMapper;
 import org.hcz.schedul.HotRankScheduler;
 import org.hcz.service.work.interaction.HotRankCache;
@@ -17,8 +15,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RocketMQMessageListener(
-        topic = RocketMQTopics.WORK_INTERACTION,
-        selectorExpression = RocketMQTopics.INTERACTION_TAG,
+        topic = WorkInteractionMessaging.TOPIC,
+        selectorExpression = WorkInteractionMessaging.INTERACTION_TAG,
         consumerGroup = "${rocketmq.consumer.groups.work-hot}")
 public class WorkHotEventListener implements RocketMQListener<WorkInteractionMessage> {
 

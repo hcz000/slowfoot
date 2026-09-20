@@ -1,4 +1,4 @@
-package org.hcz.event.work;
+package org.hcz.messaging.workinteraction;
 
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;

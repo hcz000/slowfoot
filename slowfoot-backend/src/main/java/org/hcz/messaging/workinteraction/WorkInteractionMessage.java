@@ -1,12 +1,9 @@
-package org.hcz.event.mq;
+package org.hcz.messaging.workinteraction;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hcz.event.work.WorkInteractionEvent;
-import org.hcz.event.work.WorkInteractionType;
-
 import java.util.List;
 
 @Getter

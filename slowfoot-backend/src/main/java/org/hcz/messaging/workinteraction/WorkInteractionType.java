@@ -1,4 +1,4 @@
-package org.hcz.event.work;
+package org.hcz.messaging.workinteraction;
 
 
 // 能影响作品统计与推荐权重的互动类型。
