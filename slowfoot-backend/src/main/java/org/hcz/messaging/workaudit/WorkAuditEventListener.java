@@ -1,10 +1,7 @@
-package org.hcz.listener.audit;
+package org.hcz.messaging.workaudit;
 
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
-import org.hcz.event.audit.WorkAuditSubmittedEvent;
-import org.hcz.event.mq.RocketMQTopics;
-import org.hcz.event.mq.WorkAuditSubmittedMessage;
 import org.hcz.service.audit.WorkAuditTaskService;
 import org.hcz.service.audit.WorkPublishAuditService;
 import org.slf4j.Logger;
@@ -14,8 +11,8 @@ import org.springframework.stereotype.Component;
 // 作品审核完成事件监听器
 @Component
 @RocketMQMessageListener(
-        topic = RocketMQTopics.AUDIT_SUBMITTED,
-        selectorExpression = RocketMQTopics.WORK_AUDIT_TAG,
+        topic = WorkAuditMessaging.SUBMITTED_TOPIC,
+        selectorExpression = WorkAuditMessaging.WORK_AUDIT_TAG,
         consumerGroup = "${rocketmq.consumer.groups.work-audit}")
 public class WorkAuditEventListener implements RocketMQListener<WorkAuditSubmittedMessage> {
 

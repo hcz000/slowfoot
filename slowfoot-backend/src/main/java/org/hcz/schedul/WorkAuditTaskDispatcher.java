@@ -3,7 +3,7 @@ package org.hcz.schedul;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.hcz.constant.AuditTaskStatus;
 import org.hcz.entity.audit.WorkAuditTask;
-import org.hcz.event.audit.WorkAuditSubmittedEvent;
+import org.hcz.messaging.workaudit.WorkAuditSubmittedEvent;
 import org.hcz.service.audit.WorkAuditTaskService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;

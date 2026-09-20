@@ -1,4 +1,4 @@
-package org.hcz.event.audit;
+package org.hcz.messaging.workaudit;
 
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;

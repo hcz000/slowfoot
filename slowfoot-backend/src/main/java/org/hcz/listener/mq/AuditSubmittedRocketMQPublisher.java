@@ -1,7 +1,6 @@
 package org.hcz.listener.mq;
 
 import org.hcz.event.audit.CommentAuditSubmittedEvent;
-import org.hcz.event.audit.WorkAuditSubmittedEvent;
 import org.hcz.service.mq.RocketMQEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -13,11 +12,6 @@ public class AuditSubmittedRocketMQPublisher {
 
     public AuditSubmittedRocketMQPublisher(RocketMQEventPublisher eventPublisher) {
         this.eventPublisher = eventPublisher;
-    }
-
-    @EventListener
-    public void handle(WorkAuditSubmittedEvent event) {
-        eventPublisher.publish(event);
     }
 
     @EventListener

@@ -16,7 +16,7 @@ import org.hcz.entity.work.TextWork;
 import org.hcz.entity.work.Work;
 import org.hcz.entity.work.WorkAssetEntity;
 import org.hcz.entity.work.WorkType;
-import org.hcz.event.audit.WorkAuditSubmittedEvent;
+import org.hcz.messaging.workaudit.WorkAuditSubmittedEvent;
 import org.hcz.mapper.audit.EventConsumeMapper;
 import org.hcz.mapper.work.TextWorkMapper;
 import org.hcz.mapper.work.WorkAssetMapper;

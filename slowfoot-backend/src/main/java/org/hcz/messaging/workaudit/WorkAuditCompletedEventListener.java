@@ -1,10 +1,8 @@
-package org.hcz.listener.audit;
+package org.hcz.messaging.workaudit;
 
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.hcz.entity.work.Work;
-import org.hcz.event.mq.RocketMQTopics;
-import org.hcz.event.mq.WorkAuditCompletedMessage;
 import org.hcz.mapper.work.WorkMapper;
 import org.hcz.service.feed.FeedService;
 import org.hcz.service.recommendation.InterestPushService;
@@ -23,7 +21,7 @@ import java.util.Collection;
 
 @Component
 @RocketMQMessageListener(
-        topic = RocketMQTopics.AUDIT_COMPLETED,
+        topic = WorkAuditMessaging.COMPLETED_TOPIC,
         selectorExpression = "*",
         consumerGroup = "${rocketmq.consumer.groups.audit-completed}")
 public class WorkAuditCompletedEventListener implements RocketMQListener<WorkAuditCompletedMessage> {
