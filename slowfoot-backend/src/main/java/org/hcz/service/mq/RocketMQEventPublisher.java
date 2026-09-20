@@ -5,11 +5,9 @@ import org.hcz.event.audit.CommentAuditSubmittedEvent;
 import org.hcz.event.audit.WorkAuditCompletedEvent;
 import org.hcz.event.audit.WorkAuditSubmittedEvent;
 import org.hcz.event.mq.CommentAuditSubmittedMessage;
-import org.hcz.event.mq.NotificationMessage;
 import org.hcz.event.mq.RocketMQTopics;
 import org.hcz.event.mq.WorkAuditCompletedMessage;
 import org.hcz.event.mq.WorkAuditSubmittedMessage;
-import org.hcz.event.notification.NotificationEvent;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -17,23 +15,16 @@ import org.springframework.stereotype.Service;
 public class RocketMQEventPublisher {
 
     private final RocketMQTemplate rocketMQTemplate;
-    private final String notificationTopic;
     private final String auditSubmittedTopic;
     private final String auditCompletedTopic;
 
     public RocketMQEventPublisher(
             RocketMQTemplate rocketMQTemplate,
-            @Value("${rocketmq.topics.notification}") String notificationTopic,
             @Value("${rocketmq.topics.audit-submitted}") String auditSubmittedTopic,
             @Value("${rocketmq.topics.audit-completed}") String auditCompletedTopic) {
         this.rocketMQTemplate = rocketMQTemplate;
-        this.notificationTopic = notificationTopic;
         this.auditSubmittedTopic = auditSubmittedTopic;
         this.auditCompletedTopic = auditCompletedTopic;
-    }
-
-    public void publish(NotificationEvent event) {
-        rocketMQTemplate.syncSend(notificationTopic, NotificationMessage.from(event));
     }
 
     public void publish(WorkAuditSubmittedEvent event) {

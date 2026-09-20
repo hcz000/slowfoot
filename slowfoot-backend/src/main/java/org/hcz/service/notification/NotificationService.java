@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.hcz.constant.NotificationType;
 import org.hcz.entity.notification.Notification;
 import org.hcz.entity.vo.BasePage;
-import org.hcz.event.notification.NotificationEvent;
+import org.hcz.messaging.notification.NotificationEvent;
 
 public interface NotificationService {
 

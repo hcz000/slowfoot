@@ -1,4 +1,4 @@
-package org.hcz.event.notification;
+package org.hcz.messaging.notification;
 
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;

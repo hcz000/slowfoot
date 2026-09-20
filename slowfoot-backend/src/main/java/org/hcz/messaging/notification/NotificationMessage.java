@@ -1,11 +1,9 @@
-package org.hcz.event.mq;
+package org.hcz.messaging.notification;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hcz.event.notification.NotificationEvent;
-
 @Getter
 @Setter
 @NoArgsConstructor

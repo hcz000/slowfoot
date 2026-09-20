@@ -8,7 +8,7 @@ import org.hcz.constant.NotificationType;
 import org.hcz.entity.notification.Notification;
 import org.hcz.entity.user.User;
 import org.hcz.entity.vo.BasePage;
-import org.hcz.event.notification.NotificationEvent;
+import org.hcz.messaging.notification.NotificationEvent;
 import org.hcz.exception.AppException;
 import org.hcz.exception.ErrorCode;
 import org.hcz.mapper.notification.NotificationMapper;

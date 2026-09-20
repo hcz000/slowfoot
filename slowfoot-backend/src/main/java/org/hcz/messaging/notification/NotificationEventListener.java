@@ -1,17 +1,14 @@
-package org.hcz.listener.notification;
+package org.hcz.messaging.notification;
 
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
-import org.hcz.event.mq.NotificationMessage;
-import org.hcz.event.mq.RocketMQTopics;
-import org.hcz.event.notification.NotificationEvent;
 import org.hcz.service.notification.NotificationService;
 import org.springframework.stereotype.Component;
 
 // 通知事件监听器
 @Component
 @RocketMQMessageListener(
-        topic = RocketMQTopics.NOTIFICATION,
+        topic = NotificationMessaging.TOPIC,
         selectorExpression = "*",
         consumerGroup = "${rocketmq.consumer.groups.notification}")
 public class NotificationEventListener implements RocketMQListener<NotificationMessage> {
