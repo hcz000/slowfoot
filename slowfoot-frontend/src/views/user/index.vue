@@ -2,9 +2,10 @@
   <div class="profile-page">
     <el-card class="profile-card" shadow="never">
       <div class="profile-cover">
-        <el-image class="profile-banner" fit="cover" src="/logo.png" />
+        <div class="profile-banner"><DefaultAvatar :size="96" /></div>
         <div class="profile-overlay">
-          <el-avatar :src="avatarImg" :size="50" />
+          <el-avatar v-if="avatarImg" :src="avatarImg" :size="50" />
+          <DefaultAvatar v-else :size="50" />
           <div class="profile-summary">
             <strong>{{ userInfo.nickName }}</strong>
             <span>{{ userInfo.description || '这个人很懒，没有任何描述' }}</span>
@@ -26,7 +27,8 @@
     <el-dialog v-model="editDialog" title="编辑用户信息" width="400px">
       <form class="profile-form" @submit.prevent="saveInfo">
         <div class="avatar-picker" @click="avatarFileRef?.click()">
-          <el-avatar :src="avatarImg" :size="80" />
+          <el-avatar v-if="avatarImg" :src="avatarImg" :size="80" />
+          <DefaultAvatar v-else :size="80" />
           <div class="avatar-picker-overlay">
             <el-progress v-if="uploading > -1" type="circle" :percentage="uploading" :width="42" />
             <i v-else class="mdi mdi-upload" />
@@ -58,6 +60,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { apiFileGet, apiUploadFile } from '../../apis/file'
 import { apiChangeUserInfo, apiGetUserInfo } from '../../apis/user/user'
+import DefaultAvatar from '../../components/DefaultAvatar.vue'
 import router from '../../router'
 import { useUserStore } from '../../stores'
 
@@ -74,19 +77,17 @@ const avatarImg = computed(() => {
   if (avatarFileRef.value?.files?.[0]) {
     return URL.createObjectURL(avatarFileRef.value.files[0])
   }
-  return userInfo.value?.avatar ? apiFileGet(userInfo.value.avatar) : '/logo.png'
+  return userInfo.value?.avatar ? apiFileGet(userInfo.value.avatar) : null
 })
 
 const navigationItems = computed(() => [
   { label: '主页', path: '/user/home' },
   ...(isSelf.value ? [
-    { label: '创作中心', path: '/user/video' },
+    { label: '发布作品', path: '/user/publish' },
     { label: '收藏夹', path: '/user/favorites' },
-    { label: '历史记录', path: '/user/history' },
-    { label: '订阅分类', path: '/user/classify' }
+    { label: '历史记录', path: '/user/history' }
   ] : []),
-  { label: '关注/粉丝', path: '/user/like' },
-  ...(isSelf.value ? [{ label: '发布作品', path: '/user/publish' }] : [])
+  { label: '关注/粉丝', path: '/user/like' }
 ])
 
 const isActive = (path) => route.path === path || (path === '/user/home' && route.path === '/user')
@@ -146,12 +147,12 @@ onMounted(() => {
 <style scoped>
 .profile-card { overflow: hidden; }
 .profile-cover { position: relative; height: 220px; }
-.profile-banner { width: 100%; height: 100%; }
-.profile-overlay { position: absolute; right: 0; bottom: 0; left: 0; display: flex; align-items: center; gap: 12px; padding: 18px; color: white; background: rgba(1, 1, 1, 0.5); }
+.profile-banner { display: grid; width: 100%; height: 100%; place-items: center; background: radial-gradient(circle at 50% 20%, rgba(255, 36, 66, .1), transparent 42%), linear-gradient(135deg, #fff4f5, #f5f5f5); }
+.profile-overlay { position: absolute; right: 0; bottom: 0; left: 0; display: flex; align-items: center; gap: 12px; padding: 18px; color: #333; background: rgba(255, 255, 255, .82); backdrop-filter: blur(10px); }
 .profile-summary { display: flex; flex-direction: column; gap: 4px; }
-.profile-summary span { color: rgba(255, 255, 255, 0.76); font-size: 13px; }
+.profile-summary span { color: #888; font-size: 13px; }
 .profile-navigation { display: flex; align-items: center; gap: 4px; padding-top: 10px; flex-wrap: wrap; }
-.profile-navigation .active { color: #7bbfea; }
+.profile-navigation .active { color: #ff2442; }
 .navigation-spacer { flex: 1; }
 .profile-form { display: grid; gap: 14px; }
 .avatar-picker { position: relative; width: 80px; height: 80px; margin: 0 auto 8px; cursor: pointer; }

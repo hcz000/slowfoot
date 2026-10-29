@@ -1,0 +1,37 @@
+package org.hcz.work.service.interaction;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import org.hcz.work.entity.WorkShare;
+import org.hcz.work.mapper.WorkShareMapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+
+
+@Service
+public class WorkShareServiceImpl extends ServiceImpl<WorkShareMapper, WorkShare> implements WorkShareService {
+
+    @Override
+    public boolean share(WorkShare workShare) {
+
+        try {
+            // 利用workId和ip做为唯一索引,少一次查询
+            this.save(workShare);
+        }catch (DuplicateKeyException e){
+            // 不用删除
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public List<Long> getShareUserIds(Long workId) {
+        return this.list(new LambdaQueryWrapper<WorkShare>().eq(WorkShare::getWorkId, workId)).stream().map(WorkShare::getUserId).collect(Collectors.toList());
+    }
+
+
+}

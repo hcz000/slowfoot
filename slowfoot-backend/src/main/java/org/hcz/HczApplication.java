@@ -1,6 +1,5 @@
 package org.hcz;
 
-import org.hcz.security.access.AuthStore;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -13,12 +12,12 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableAspectJAutoProxy
 @SpringBootApplication
 @EnableTransactionManagement
-@MapperScan(basePackages = "org.hcz.mapper")
+@MapperScan(basePackages = "org.hcz.**.mapper")
 @EnableScheduling
 public class HczApplication {
 
     public static void main(String[] args) {
-        AuthStore.enable();
+        // 权限校验开关由 AuthStore 默认启用，不再在启动前设置全局静态状态。
         SpringApplication.run(HczApplication.class, args);
 
     }

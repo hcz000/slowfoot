@@ -8,9 +8,8 @@
 
     <div v-if="currentItems.length" class="people-list">
       <div v-for="item in currentItems" :key="item.id" class="person-row" @click="openUser(item)">
-        <el-avatar :src="item.avatar ? apiFileGet(item.avatar) : '/logo.png'" :class="item.sex ? 'male-avatar' : 'female-avatar'">
-          <i :class="['mdi', item.sex ? 'mdi-human-male' : 'mdi-human-female']" />
-        </el-avatar>
+        <el-avatar v-if="item.avatar" :src="apiFileGet(item.avatar)" :class="item.sex ? 'male-avatar' : 'female-avatar'" />
+        <DefaultAvatar v-else :size="40" />
         <div class="person-details">
           <strong>{{ item.nickName }}</strong>
           <span>{{ item.description || '这个人很懒，没有任何描述' }}</span>
@@ -37,6 +36,7 @@
 import { ref, watch } from 'vue'
 import { apiFileGet } from '../../../apis/file'
 import { apiFollows, apiGetLike } from '../../../apis/user/like'
+import DefaultAvatar from '../../../components/DefaultAvatar.vue'
 import router from '../../../router'
 import { useUserStore } from '../../../stores'
 

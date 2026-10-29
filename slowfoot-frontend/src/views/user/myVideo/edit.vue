@@ -9,7 +9,8 @@
       </el-form-item>
       <el-form-item v-if="!currentVideo.id" label="视频封面">
         <div class="cover-picker" @click="avatarFileRef?.click()">
-          <el-image :key="currentVideo.coverFileId" :src="coverImg" fit="cover" />
+          <el-image v-if="coverImg" :key="currentVideo.coverFileId" :src="coverImg" fit="cover" />
+          <div v-else class="cover-placeholder"><i class="mdi mdi-image-outline" /></div>
           <div class="cover-picker-overlay">
             <el-progress v-if="uploading > -1" type="circle" :percentage="uploading" :width="46" />
             <i v-else class="mdi mdi-upload" />
@@ -37,7 +38,9 @@
     <el-divider />
     <div class="form-actions">
       <el-button type="warning" plain @click="clearUp">取消</el-button>
-      <el-button type="success" plain @click="pushVideo">发布视频</el-button>
+      <el-tooltip :content="uploadHint" :disabled="uploadDone" placement="top">
+        <el-button type="success" plain :disabled="!uploadDone" @click="pushVideo">发布视频</el-button>
+      </el-tooltip>
     </div>
     <el-alert v-if="snackbar.show" :title="snackbar.text" :type="snackbar.color || 'info'" closable class="form-alert" @close="snackbar.show = false" />
   </div>
@@ -59,6 +62,15 @@ const avatarFileRef = ref(null)
 const uploading = ref(-1)
 const allClassifyList = ref([])
 const snackbar = ref({ show: false, text: '', color: 'info' })
+
+const uploadDone = computed(() => currentVideo.value?.status === 1)
+const uploadHint = computed(() => {
+  const s = currentVideo.value?.status
+  if (s === 0) return '视频上传中，请等待完成...'
+  if (s === 2) return '视频上传已暂停，请点击继续'
+  if (s === -1) return '视频上传失败，请重新上传'
+  return '等待上传完成'
+})
 
 const clearUp = () => props.clear()
 
@@ -86,7 +98,7 @@ const uploadAvatar = () => {
 
 const coverImg = computed(() => {
   if (avatarFileRef.value?.files?.[0]) return URL.createObjectURL(avatarFileRef.value.files[0])
-  return currentVideo.value.coverFileId ? apiFileGet(currentVideo.value.coverFileId) : '/logo.png'
+  return currentVideo.value.coverFileId ? apiFileGet(currentVideo.value.coverFileId) : null
 })
 
 onMounted(() => {
@@ -105,6 +117,7 @@ const pushVideo = () => {
 .el-select { width: 100%; }
 .cover-picker { position: relative; width: 150px; height: 150px; overflow: hidden; border-radius: 8px; cursor: pointer; background: #2f3136; }
 .cover-picker > .el-image { width: 100%; height: 100%; }
+.cover-placeholder { display: grid; width: 100%; height: 100%; place-items: center; color: #8f98a8; background: #252a34; font-size: 42px; }
 .cover-picker-overlay { position: absolute; inset: 0; display: grid; place-items: center; color: white; background: rgba(0, 0, 0, 0.45); opacity: 0; transition: opacity 0.15s ease; }
 .cover-picker:hover .cover-picker-overlay { opacity: 1; }
 .option-with-icon { display: flex; align-items: center; gap: 8px; }

@@ -45,8 +45,9 @@ Windows 使用 `mvnw.cmd` 替代 `mvnw`。
 - 修改缓存 Key、序列化格式或消息字段时，必须考虑旧数据、旧消费者和回滚方案。
 - 数据库结构变更必须同时更新初始化脚本和增量迁移脚本。
 - 涉及事务、异步任务或 RocketMQ 消费时，说明幂等、重试和失败后的恢复方式。
-- 事件、消息、发布器和消费者放在 `org.hcz.messaging.<功能>`，由对应功能包维护自己的 Topic 和消费组常量。
-- RBAC 鉴权、权限快照和接口限流统一放在 `org.hcz.security.access`。
+- 代码按功能分包（`org.hcz.<功能>`，功能内自含 controller/service/mapper/entity/dto）；新增功能时新建顶层功能包，不要恢复按技术分层的写法。
+- 事件、消息、发布器和消费者放在对应功能包的 `event` 子包（如 `org.hcz.work.event`），由各功能维护自己的 Topic 和消费组常量；通用 Outbox 设施在 `org.hcz.common.messaging`。
+- RBAC 鉴权和权限快照放在 `org.hcz.admin.security`；接口限流放在 `org.hcz.common.security.access`；新增 Mapper 接口需位于 `org.hcz.<功能>.mapper`（`@MapperScan` 按 `org.hcz.**.mapper` 通配）。
 - 不要为了小功能随意引入新的框架或跨模块全局状态。
 
 ## 测试要求

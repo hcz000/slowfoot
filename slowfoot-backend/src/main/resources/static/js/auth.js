@@ -34,7 +34,7 @@
 
         refreshing = true;
         $.ajax({
-            url: (window.ipURL || window.location.origin) + '/luckyjourney/login/refresh',
+            url: (window.ipURL || window.location.origin) + '/slowfoot/login/refresh',
             method: 'post',
             contentType: 'application/json',
             data: JSON.stringify({refreshToken: refreshToken}),

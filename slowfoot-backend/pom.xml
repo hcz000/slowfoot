@@ -6,13 +6,12 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.5.16</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <relativePath/>
     </parent>
     <groupId>org.hcz</groupId>
-    <artifactId>hcz</artifactId>
+    <artifactId>slowfoot-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>hcz</name>
-    <description>一路顺风鸭</description>
+    <name>slowfoot-backend</name>
     <properties>
         <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -222,6 +221,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <jvmArguments>-Xmx256m</jvmArguments>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>

@@ -1,0 +1,179 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>评论审核 · SlowFoot</title>
+    <link rel="stylesheet" href="../../css/admin-refresh.css?v=20261011">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #f4f7fb; color: #17243a; font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif; }
+        .page { padding: 22px; }
+        .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+        .eyebrow { margin: 0 0 7px; color: #7285a2; font-size: 11px; font-weight: 750; letter-spacing: .15em; }
+        h1 { margin: 0; font-size: 24px; letter-spacing: -.035em; }
+        .desc { margin: 7px 0 0; color: #7b899d; font-size: 13px; }
+        .filters { display: flex; align-items: center; gap: 9px; }
+        select, button { height: 38px; padding: 0 12px; border: 1px solid #dce4ee; border-radius: 9px; background: #fff; color: #40516a; font: inherit; font-size: 13px; }
+        select { min-width: 132px; }
+        button { cursor: pointer; font-weight: 650; transition: .15s; }
+        button:hover { border-color: #a9c4ef; color: #286fe8; }
+        button:disabled { cursor: wait; opacity: .6; }
+        .primary { border-color: #3478ed; background: #3478ed; color: #fff; }
+        .primary:hover { border-color: #2868d7; background: #2868d7; color: #fff; }
+        .card { overflow: hidden; border: 1px solid #e5eaf1; border-radius: 12px; background: #fff; box-shadow: 0 5px 18px rgba(23,36,58,.035); }
+        .table-wrap { overflow: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        th, td { padding: 14px 15px; border-bottom: 1px solid #edf0f5; text-align: left; vertical-align: top; font-size: 13px; }
+        th { background: #f7f9fc; color: #607089; font-size: 12px; font-weight: 700; white-space: nowrap; }
+        td { color: #384a63; }
+        tr:last-child td { border-bottom: 0; }
+        .content { min-width: 240px; max-width: 520px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+        .muted { color: #8c99aa; font-size: 12px; }
+        .status { display: inline-flex; padding: 5px 8px; border-radius: 999px; background: #fff5e5; color: #b7791f; font-size: 11px; font-weight: 700; white-space: nowrap; }
+        .status.s0 { background: #e9f8f1; color: #258768; }
+        .status.s2 { background: #fff0ef; color: #bd514b; }
+        .status.s3 { background: #f1edff; color: #7652d4; }
+        .actions { display: flex; gap: 7px; white-space: nowrap; }
+        .actions .approve { border-color: #d0eee1; background: #effaf5; color: #258768; }
+        .actions .manual { border-color: #e0d9fb; background: #f6f3ff; color: #7652d4; }
+        .empty, .loading { padding: 52px 18px; color: #8c99aa; text-align: center; font-size: 13px; }
+        .error { display: none; margin: 14px 18px 0; padding: 11px 13px; border: 1px solid #f1d3d2; border-radius: 8px; background: #fff5f4; color: #a74c47; font-size: 13px; }
+        .error.show { display: block; }
+        .table-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 16px; border-top: 1px solid #edf0f5; color: #8491a3; font-size: 12px; }
+        .pager { display: flex; gap: 7px; }
+        .pager button { height: 32px; padding: 0 10px; }
+        @media (max-width: 700px) { .page { padding: 15px; } .page-head { align-items: flex-start; flex-direction: column; } .filters { width: 100%; } .filters select { flex: 1; } }
+    </style>
+</head>
+<body>
+<main class="page">
+    <header class="page-head">
+        <div><p class="eyebrow">CONTENT MODERATION</p><h1>评论审核</h1><p class="desc">查看待审核评论，完成通过或转人工复审。</p></div>
+        <div class="filters"><select id="statusFilter" aria-label="审核状态"><option value="">全部状态</option><option value="1">待审核</option><option value="3">人工复审</option><option value="0">已通过</option><option value="2">未通过</option></select><button class="primary" id="searchButton" type="button">查询</button></div>
+    </header>
+    <section class="card" aria-label="评论列表">
+        <div id="errorBox" class="error" role="alert"></div>
+        <div class="table-wrap"><table><thead><tr><th>评论内容</th><th>作品 ID</th><th>用户 ID</th><th>提交时间</th><th>审核状态</th><th>审核说明</th><th>操作</th></tr></thead><tbody id="commentRows"><tr><td class="loading" colspan="7">正在加载评论…</td></tr></tbody></table></div>
+        <footer class="table-footer"><span id="pageInfo">—</span><div class="pager"><button type="button" id="previousPage">上一页</button><button type="button" id="nextPage">下一页</button></div></footer>
+    </section>
+</main>
+<script src="../../api/urlConfig.js"></script>
+<script>
+(function () {
+    var page = 1;
+    var limit = 12;
+    var total = 0;
+    var rows = document.getElementById('commentRows');
+    var errorBox = document.getElementById('errorBox');
+    var statusNames = { 0: '已通过', 1: '待审核', 2: '未通过', 3: '人工复审' };
+    function appendCell(row, value, className) {
+        var cell = document.createElement('td');
+        if (className) cell.className = className;
+        cell.textContent = value == null || value === '' ? '—' : String(value);
+        row.appendChild(cell);
+        return cell;
+    }
+    function statusCell(row, value) {
+        var cell = document.createElement('td');
+        var badge = document.createElement('span');
+        badge.className = 'status s' + value;
+        badge.textContent = statusNames[value] || '未知状态';
+        cell.appendChild(badge);
+        row.appendChild(cell);
+    }
+    function render(records) {
+        rows.replaceChildren();
+        if (!records.length) {
+            var empty = document.createElement('tr');
+            var cell = appendCell(empty, '暂无评论记录', 'empty');
+            cell.colSpan = 7;
+            rows.appendChild(empty);
+            return;
+        }
+        records.forEach(function (item) {
+            var row = document.createElement('tr');
+            appendCell(row, item.content, 'content');
+            appendCell(row, item.workId);
+            appendCell(row, item.userId);
+            appendCell(row, item.gmtCreated ? new Date(item.gmtCreated).toLocaleString('zh-CN') : '—');
+            statusCell(row, item.auditStatus);
+            appendCell(row, item.auditMsg);
+            var actions = document.createElement('td');
+            if (item.auditStatus === 1 || item.auditStatus === 3) {
+                var approve = document.createElement('button');
+                approve.type = 'button';
+                approve.className = 'approve';
+                approve.textContent = '通过';
+                approve.addEventListener('click', function () { audit(item.id, 0); });
+                var manual = document.createElement('button');
+                manual.type = 'button';
+                manual.className = 'manual';
+                manual.textContent = '转人工';
+                manual.addEventListener('click', function () { audit(item.id, 3); });
+                var group = document.createElement('span');
+                group.className = 'actions';
+                group.appendChild(approve);
+                group.appendChild(manual);
+                actions.appendChild(group);
+            } else {
+                actions.className = 'muted';
+                actions.textContent = '—';
+            }
+            row.appendChild(actions);
+            rows.appendChild(row);
+        });
+    }
+    function load() {
+        errorBox.classList.remove('show');
+        rows.innerHTML = '<tr><td class="loading" colspan="7">正在加载评论…</td></tr>';
+        var query = new URLSearchParams({ page: String(page), limit: String(limit) });
+        var status = document.getElementById('statusFilter').value;
+        if (status !== '') query.set('auditStatus', status);
+        fetch(ipURL + '/admin/comment/page?' + query.toString(), { headers: { token: localStorage.getItem('token') || '' } })
+            .then(function (response) {
+                return response.json().then(function (body) {
+                    if (!response.ok || !body.success) throw new Error(body.message || '评论加载失败');
+                    return body.data || {};
+                });
+            })
+            .then(function (data) {
+                var records = Array.isArray(data.records) ? data.records : (Array.isArray(data) ? data : []);
+                total = Number(data.total || data.meta && data.meta.total || records.length);
+                render(records);
+                document.getElementById('pageInfo').textContent = '第 ' + page + ' 页 · 共 ' + total.toLocaleString('zh-CN') + ' 条';
+                document.getElementById('previousPage').disabled = page <= 1;
+                document.getElementById('nextPage').disabled = page * limit >= total;
+            })
+            .catch(function (failure) {
+                rows.replaceChildren();
+                errorBox.textContent = failure.message || '请求失败，请检查登录状态。';
+                errorBox.classList.add('show');
+                document.getElementById('pageInfo').textContent = '数据加载失败';
+            });
+    }
+    function audit(id, auditStatus) {
+        var label = auditStatus === 0 ? '通过这条评论' : '将这条评论转入人工复审';
+        if (!window.confirm('确定' + label + '吗？')) return;
+        fetch(ipURL + '/admin/comment/audit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', token: localStorage.getItem('token') || '' },
+            body: JSON.stringify({ id: id, auditStatus: auditStatus })
+        })
+            .then(function (response) {
+                return response.json().then(function (body) {
+                    if (!response.ok || !body.success) throw new Error(body.message || '审核操作失败');
+                    return body;
+                });
+            })
+            .then(function (body) { window.alert(body.message || '操作完成'); load(); })
+            .catch(function (failure) { errorBox.textContent = failure.message || '操作失败'; errorBox.classList.add('show'); });
+    }
+    document.getElementById('searchButton').addEventListener('click', function () { page = 1; load(); });
+    document.getElementById('previousPage').addEventListener('click', function () { if (page > 1) { page -= 1; load(); } });
+    document.getElementById('nextPage').addEventListener('click', function () { if (page * limit < total) { page += 1; load(); } });
+    load();
+})();
+</script>
+</body>
+</html>

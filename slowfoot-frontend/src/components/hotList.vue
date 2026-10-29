@@ -31,20 +31,20 @@ apiVideoHotRank().then(({ data }) => {
 </script>
 
 <style scoped>
-.hot-list { padding: 20px 18px 15px; background: #171d25; border: 1px solid #252e3a; border-radius: 10px; }
+.hot-list { padding: 19px 17px 13px; background: #fff; border: 1px solid #f0f0f0; border-radius: 13px; }
 .hot-list.compact { margin-top: 26px; padding: 0; background: transparent; border: 0; }
-.hot-heading { display: flex; align-items: flex-start; justify-content: space-between; padding-bottom: 14px; border-bottom: 1px solid #27313c; }
-.hot-kicker { color: #687689; font-size: 9px; font-weight: 800; letter-spacing: 1.4px; }
-.hot-heading h3 { margin: 5px 0 0; color: #edf1f6; font-size: 17px; }
-.fire-icon { display: grid; place-items: center; width: 30px; height: 30px; color: #f2bd5c; background: #282a29; border-radius: 8px; }
+.hot-heading { display: flex; align-items: flex-start; justify-content: space-between; padding-bottom: 13px; border-bottom: 1px solid #f0f0f0; }
+.hot-kicker { color: #aaa; font-size: 9px; font-weight: 750; letter-spacing: 1.4px; }
+.hot-heading h3 { margin: 5px 0 0; color: #333; font-size: 16px; }
+.fire-icon { display: grid; place-items: center; width: 30px; height: 30px; color: #ff2442; background: #fff0f2; border-radius: 9px; }
 .hot-items { padding-top: 5px; }
-.hot-item { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; gap: 8px; width: 100%; min-height: 45px; padding: 0; color: #a8b2c0; background: transparent; border: 0; border-bottom: 1px solid #202934; cursor: pointer; text-align: left; }
+.hot-item { display: grid; grid-template-columns: 25px minmax(0, 1fr) auto; align-items: center; gap: 8px; width: 100%; min-height: 44px; padding: 0; color: #888; background: transparent; border: 0; border-bottom: 1px solid #f4f4f4; cursor: pointer; text-align: left; }
 .hot-item:last-child { border-bottom: 0; }
-.hot-item:hover .rank-title { color: #f2bd5c; }
-.rank-number { color: #697588; font-size: 11px; font-variant-numeric: tabular-nums; }
-.top-rank { color: #f2bd5c; }
-.rank-title { overflow: hidden; color: #c7ced8; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
-.hot-item small { color: #687689; font-size: 10px; }
-.hot-empty { display: flex; min-height: 100px; flex-direction: column; align-items: center; justify-content: center; gap: 9px; color: #697789; font-size: 11px; }
-.hot-empty svg { width: 25px; height: 25px; color: #596879; }
+.hot-item:hover .rank-title { color: #ff2442; }
+.rank-number { color: #aaa; font-size: 11px; font-variant-numeric: tabular-nums; }
+.top-rank { color: #ff2442; font-weight: 700; }
+.rank-title { overflow: hidden; color: #555; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.hot-item small { color: #aaa; font-size: 10px; }
+.hot-empty { display: flex; min-height: 100px; flex-direction: column; align-items: center; justify-content: center; gap: 9px; color: #aaa; font-size: 11px; }
+.hot-empty svg { width: 25px; height: 25px; color: #ccc; }
 </style>

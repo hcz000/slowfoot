@@ -1,47 +1,50 @@
 <template>
-    <el-card class="follow-page" shadow="never">
-        <Video :next-video="nextVideo" :hide-close="true" :video-list="videoList" v-if="videoList.length > 0" />
-        <el-card v-else class="follow-empty-card" shadow="never">
-            <div class="py-12 text-center">
-                <i class="mdi mdi-eye follow-empty-icon" />
-
-                <div class="text-h4 font-weight-bold">您关注的人没有视频哦~</div>
-            </div>
-
-            <el-divider></el-divider>
-
-            <div class="pa-4 text-end">
-                <el-button class="text-none" type="info" plain @click="$router.push('/')">
-                    去看推荐
-                </el-button>
-            </div>
-        </el-card>
-    </el-card>
+  <RecommendationFeed
+    :video-list="workList"
+    :loading="loading && !workList.length"
+    :loading-more="loading && workList.length > 0"
+    :error="error"
+    @index-change="loadNearEnd"
+    @retry="loadWorks"
+  />
 </template>
-<script setup>
-import { onMounted, ref } from 'vue';
-import { apiGetFollowVideo } from '../../apis/video.js';
-import Video from '../../components/video/index.vue';
-const videoList = ref([])
 
-const nextVideo = (idnex) =>{
-    if((videoList.value.length - idnex) <= 3) {
-        getVideo()
-    }
+<script setup>
+import { ref } from 'vue'
+import { apiGetFollowVideo } from '../../apis/video.js'
+import RecommendationFeed from '../../components/video/recommendationFeed.vue'
+
+const workList = ref([])
+const loading = ref(false)
+const error = ref(false)
+const hasMore = ref(true)
+
+const loadWorks = async () => {
+  if (loading.value || !hasMore.value) return
+  loading.value = true
+  error.value = false
+  const lastTime = workList.value.length
+    ? new Date(workList.value[workList.value.length - 1].gmtCreated).getTime()
+    : Date.now()
+  try {
+    const { data } = await apiGetFollowVideo(lastTime)
+    if (!data?.success) throw new Error(data?.message || '关注作品加载失败')
+    const nextWorks = Array.isArray(data.data) ? data.data : []
+    if (!nextWorks.length) hasMore.value = false
+    const knownIds = new Set(workList.value.map((work) => work.id))
+    const newWorks = nextWorks.filter((work) => !knownIds.has(work.id))
+    if (nextWorks.length && !newWorks.length) hasMore.value = false
+    workList.value = workList.value.concat(newWorks)
+  } catch {
+    error.value = true
+  } finally {
+    loading.value = false
+  }
 }
-const getVideo =()=>{
-    let time = Date.now()
-    if(videoList.value.length>0) {
-        time = new Date(videoList.value[videoList.value.length-1].gmtCreated).getTime()
-    }
-    apiGetFollowVideo(time).then(({ data }) => {
-        if (!data.success) {
-            return;
-        }
-        videoList.value = videoList.value.concat(data.data)
-    })
+
+const loadNearEnd = (index) => {
+  if (workList.value.length - index <= 3) loadWorks()
 }
-onMounted(() => {
-    getVideo()
-})
+
+loadWorks()
 </script>

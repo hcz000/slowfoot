@@ -10,3 +10,29 @@ target/
 # IDE
 .idea/
 *.iml
+
+# Node / 前端构建产物（目录名已改为 slowfoot-frontend）
+node_modules/
+slowfoot-frontend/dist/
+dist/
+.vite/
+
+# 日志与本地运行产物
+*.log
+logs/
+*.log.gz
+
+# 本地环境变量与密钥（勿提交真实凭据）
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# 工具临时产物
+.playwright-cli/
+.codegraph/
+.vscode/
+
+# 系统文件
+.DS_Store
+Thumbs.db

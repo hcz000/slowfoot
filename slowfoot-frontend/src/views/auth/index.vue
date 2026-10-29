@@ -1,22 +1,32 @@
 <template>
-  <el-button v-if="showTrigger && !userStore.token" text class="auth-button" @click="open">
+  <el-button v-if="showTrigger && !userStore.token" class="auth-button" text @click="open">
     <el-icon><User /></el-icon>登录
   </el-button>
-  <el-button v-else-if="showTrigger" text class="auth-button" @click="outlogo">退出登录</el-button>
+  <el-button v-else-if="showTrigger" class="auth-button" text @click="logout">退出登录</el-button>
 
-  <el-dialog v-model="dialog" :close-on-click-modal="false" width="430px" title="欢迎回来">
-    <el-card class="auth-card" shadow="never">
-      <component :is="components[isLogin]" :show-message="showMessage" v-bind="isLogin === 0 ? { loginSuccess } : {}" />
+  <el-dialog
+    v-model="dialog"
+    class="auth-dialog"
+    :width="mode === 0 ? 'min(92vw, 440px)' : 'min(94vw, 760px)'"
+    align-center
+    append-to-body
+    destroy-on-close
+    :close-on-click-modal="false"
+    title="欢迎回来"
+  >
+    <div class="auth-card">
+      <div class="auth-intro">
+        <div><h2>登录 SlowFoot</h2><p>继续发现值得收藏的内容</p></div>
+      </div>
+      <component :is="components[mode]" :show-message="showMessage" v-bind="mode === 0 ? { loginSuccess } : {}" />
       <div class="auth-actions">
-        <el-button v-if="isLogin !== 2" link @click="isLogin = 2">忘记密码？</el-button>
+        <el-button v-if="mode !== 2" link @click="mode = 2">忘记密码？</el-button>
         <div class="auth-action-row">
-          <el-button class="action-button" @click="dialog = false">取消</el-button>
-          <el-button class="action-button" type="primary" @click="isLogin = isLogin === 0 ? 1 : 0">
-            {{ isLogin === 0 ? '注册账号' : '登录账号' }}
-          </el-button>
+          <el-button @click="dialog = false">取消</el-button>
+          <el-button type="primary" @click="mode = mode === 0 ? 1 : 0">{{ mode === 0 ? '注册账号' : '返回登录' }}</el-button>
         </div>
       </div>
-    </el-card>
+    </div>
   </el-dialog>
 </template>
 
@@ -32,48 +42,49 @@ import forget from './forget.vue'
 import login from './login.vue'
 import register from './register.vue'
 
+const props = defineProps({ showTrigger: { type: Boolean, default: true } })
 const userStore = useUserStore()
-const { showTrigger } = defineProps({ showTrigger: { type: Boolean, default: true } })
 const dialog = ref(false)
-const isLogin = ref(0)
+const mode = ref(0)
 const components = [login, register, forget]
-const open = () => { dialog.value = true }
+const open = () => { mode.value = 0; dialog.value = true }
 defineExpose({ open })
 
-const getUserInfo = () => {
-  if (!userStore.token) return
-  apiGetUserInfo().then(({ data }) => {
-    if (!data.success) {
-      userStore.$patch({ info: {}, token: null })
-      return
-    }
-    apiInitFollowFeed()
-    userStore.$patch({ info: data.data })
-  })
-}
-const showMessage = (text, type = 'error') => ElMessage({ message: text, type })
-const loginSuccess = (data) => {
-  if (!data?.token) return
-  userStore.$patch({ token: data.token })
-  sessionStorage.setItem('token', data.token)
-  getUserInfo()
-  dialog.value = false
-}
-const outlogo = () => {
+const clearSession = () => {
   sessionStorage.removeItem('token')
   userStore.$patch({ token: null, info: {} })
-  router.push('/')
 }
+const getUserInfo = async () => {
+  if (!userStore.token) return
+  try {
+    const { data } = await apiGetUserInfo()
+    if (!data.success) { clearSession(); return }
+    userStore.$patch({ info: data.data })
+    apiInitFollowFeed().catch(() => {})
+  } catch { clearSession() }
+}
+const showMessage = (message, type = 'error') => ElMessage({ message: message || '请求失败', type })
+const loginSuccess = ({ token }) => {
+  if (!token) { showMessage('登录响应中没有 token'); return }
+  sessionStorage.setItem('token', token)
+  userStore.$patch({ token })
+  dialog.value = false
+  getUserInfo()
+}
+const logout = () => { clearSession(); router.push('/') }
 
 onMounted(getUserInfo)
-watch(dialog, (value) => { if (!value) isLogin.value = 0 })
+watch(dialog, (visible) => { if (!visible) mode.value = 0 })
 </script>
 
 <style scoped>
-.auth-button { color: #d5dce5; }
-.auth-button:hover { color: #f2bd5c; }
-.auth-card { border: 0; background: transparent; }
-.auth-actions { padding-top: 12px; text-align: center; }
-.auth-action-row { display: flex; gap: 12px; margin-top: 12px; }
-.action-button { flex: 1; }
+.auth-button { color: #555; }
+.auth-button:hover { color: #ff2442; background: #fff0f2; }
+.auth-card { width: 100%; padding: 2px 2px 0; }
+.auth-intro { display: flex; align-items: center; margin-bottom: 18px; }
+.auth-intro h2 { margin: 0; color: #333; font-size: 20px; }
+.auth-intro p { margin: 4px 0 0; color: #999; font-size: 12px; }
+.auth-actions { padding-top: 16px; text-align: center; }
+.auth-action-row { display: flex; gap: 10px; margin-top: 10px; }
+.auth-action-row .el-button { flex: 1; }
 </style>

@@ -1,6 +1,7 @@
 import { createPinia } from "pinia";
 import videojs from "video.js";
 import "video.js/dist/video-js.css";
+import "@mdi/font/css/materialdesignicons.css";
 import { createApp } from 'vue';
 import App from './App.vue';
 import ElementPlus from './plugins/element-plus';

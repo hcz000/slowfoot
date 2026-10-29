@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>胡朝正 — Java 后端开发工程师</title>
+<style>
+  :root {
+    --bg: #F5EFDF;
+    --ink: #111111;
+    --yellow: #FFDE59;
+    --pink: #FF6B9D;
+    --blue: #38B6FF;
+    --green: #B9FBC0;
+    --orange: #FFB347;
+    --purple: #CBA6FF;
+    --red: #FF5D5D;
+    --border: 3px solid var(--ink);
+    --shadow: 8px 8px 0 var(--ink);
+    --shadow-sm: 5px 5px 0 var(--ink);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Space Grotesk", "PingFang SC", "Microsoft YaHei", sans-serif;
+    line-height: 1.6;
+  }
+  h1, h2, h3, .brand {
+    font-family: "Archivo Black", "Space Grotesk", "PingFang SC", "Microsoft YaHei", sans-serif;
+    letter-spacing: 1px;
+  }
+
+  /* ========== 顶部导航 ========== */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--ink);
+    padding: 12px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+  }
+  nav .brand { color: var(--yellow); font-size: 1.2rem; }
+  nav ul { display: flex; gap: 8px; list-style: none; flex-wrap: wrap; }
+  nav a {
+    display: inline-block; padding: 4px 14px;
+    color: var(--ink); background: var(--bg);
+    font-weight: 700; text-decoration: none;
+    border: 3px solid var(--bg);
+    transition: transform .1s;
+  }
+  nav a:hover { background: var(--pink); border-color: var(--pink); transform: translate(-2px,-2px); }
+
+  /* ========== 跑马灯 ========== */
+  .marquee {
+    background: var(--yellow);
+    border-bottom: var(--border);
+    overflow: hidden; white-space: nowrap;
+    padding: 8px 0; font-weight: 900; font-size: 1rem;
+  }
+  .marquee-inner {
+    display: inline-block;
+    animation: scroll 25s linear infinite;
+  }
+  .marquee-inner span { margin: 0 24px; }
+  @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+  /* ========== Hero ========== */
+  header.hero { padding: 70px 0 50px; position: relative; }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 30px; align-items: start;
+  }
+  .hero h1 {
+    font-size: clamp(3rem, 8vw, 5.5rem);
+    line-height: 1.05;
+    text-transform: uppercase;
+  }
+  .hero h1 .hl {
+    background: var(--pink);
+    padding: 0 12px;
+    box-shadow: var(--shadow-sm);
+    display: inline-block;
+    transform: rotate(-2deg);
+  }
+  .hero .job-intent {
+    margin-top: 24px;
+    display: inline-block;
+    background: var(--ink); color: var(--bg);
+    font-size: 1.3rem; font-weight: 900;
+    padding: 12px 24px;
+    box-shadow: var(--shadow-sm);
+    transform: rotate(1deg);
+  }
+  .contact-stickers { display: flex; flex-direction: column; gap: 14px; }
+  .sticker {
+    background: #fff;
+    border: var(--border);
+    box-shadow: var(--shadow-sm);
+    padding: 10px 16px;
+    font-weight: 700;
+    display: flex; justify-content: space-between; gap: 12px;
+    transition: transform .12s, box-shadow .12s;
+  }
+  .sticker:hover { transform: translate(-3px,-3px); box-shadow: 8px 8px 0 var(--ink); }
+  .sticker b { background: var(--blue); padding: 0 8px; }
+  .sticker:nth-child(2) b { background: var(--green); }
+  .sticker:nth-child(3) b { background: var(--orange); }
+  .sticker:nth-child(4) b { background: var(--purple); }
+
+  .hero-badges { margin-top: 36px; display: flex; flex-wrap: wrap; gap: 10px; }
+  .badge {
+    font-weight: 900; padding: 6px 14px;
+    border: var(--border); box-shadow: 3px 3px 0 var(--ink);
+    background: var(--green);
+    transform: rotate(-1deg);
+  }
+  .badge:nth-child(even) { background: var(--orange); transform: rotate(1.5deg); }
+
+  /* ========== Section 标题 ========== */
+  section { padding: 50px 0; }
+  .section-head { display: flex; align-items: center; gap: 16px; margin-bottom: 36px; }
+  .section-head .num {
+    background: var(--ink); color: var(--yellow);
+    font-family: "Archivo Black", sans-serif;
+    font-size: 1.6rem; padding: 6px 16px;
+    box-shadow: var(--shadow-sm);
+  }
+  .section-head h2 { font-size: clamp(1.8rem, 4vw, 2.6rem); text-transform: uppercase; }
+  .section-head .rule { flex: 1; border-top: var(--border); border-bottom: 3px solid transparent; height: 8px; background: repeating-linear-gradient(45deg, var(--ink) 0 8px, transparent 8px 16px); }
+
+  /* ========== 技能卡片 ========== */
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 22px;
+  }
+  .skill-card {
+    border: var(--border);
+    box-shadow: var(--shadow);
+    padding: 22px;
+    background: #fff;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .skill-card:hover { transform: translate(-4px,-4px); box-shadow: 12px 12px 0 var(--ink); }
+  .skill-card:nth-child(1) { background: var(--yellow); }
+  .skill-card:nth-child(2) { background: var(--pink); }
+  .skill-card:nth-child(3) { background: var(--blue); }
+  .skill-card:nth-child(4) { background: var(--green); }
+  .skill-card:nth-child(5) { background: var(--orange); }
+  .skill-card:nth-child(6) { background: var(--purple); }
+  .skill-card:nth-child(7) { background: #BDEFF7; }
+  .skill-card:nth-child(8) { background: #FFD9A0; }
+  .skill-card h3 { font-size: 1.25rem; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+  .skill-card .tag {
+    font-size: .75rem; background: var(--ink); color: #fff;
+    padding: 2px 8px; font-family: inherit; letter-spacing: 1px;
+  }
+  .skill-card p { font-weight: 500; }
+
+  /* ========== 项目经历 ========== */
+  .project-block {
+    border: 4px solid var(--ink);
+    box-shadow: 12px 12px 0 var(--ink);
+    background: #fff;
+    margin-bottom: 40px;
+  }
+  .project-title-bar {
+    background: var(--ink); color: #fff;
+    padding: 20px 26px;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+  }
+  .project-title-bar h3 { font-size: 1.5rem; color: var(--yellow); }
+  .project-title-bar .meta { font-weight: 700; font-size: .9rem; }
+  .project-desc {
+    background: var(--bg);
+    border-bottom: var(--border);
+    padding: 22px 26px;
+    font-size: 1.05rem; font-weight: 600;
+  }
+  .project-desc .em { background: var(--yellow); padding: 1px 6px; border: 2px solid var(--ink); }
+  .project-body { padding: 26px; display: grid; gap: 18px; }
+  .point {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 16px; align-items: start;
+  }
+  .point .pnum {
+    background: var(--pink);
+    border: var(--border); box-shadow: 3px 3px 0 var(--ink);
+    font-family: "Archivo Black", sans-serif;
+    text-align: center; padding: 6px 0; font-size: 1.2rem;
+  }
+  .point:nth-child(even) .pnum { background: var(--blue); }
+  .point p b { background: linear-gradient(transparent 60%, var(--yellow) 60%); }
+  .point p { font-size: 1rem; }
+
+  /* ========== 三大亮点 ========== */
+  .highlights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+  .highlight-card {
+    border: var(--border);
+    box-shadow: var(--shadow);
+    background: #fff;
+    overflow: hidden;
+    transition: transform .15s;
+  }
+  .highlight-card:hover { transform: translate(-4px,-4px); }
+  .highlight-card .hc-head {
+    padding: 16px 20px;
+    border-bottom: var(--border);
+    font-family: "Archivo Black", sans-serif;
+    font-size: 1.1rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .highlight-card:nth-child(1) .hc-head { background: var(--yellow); }
+  .highlight-card:nth-child(2) .hc-head { background: var(--green); }
+  .highlight-card:nth-child(3) .hc-head { background: var(--purple); }
+  .highlight-card .hc-body { padding: 20px; font-weight: 500; }
+  .highlight-card .hc-body .arrow {
+    display: block; margin: 10px 0;
+    font-weight: 900; color: var(--red); font-size: 1.2rem;
+  }
+  .highlight-card .hc-body .chain {
+    background: var(--bg); border: 2px dashed var(--ink);
+    padding: 10px 12px; font-size: .9rem; margin-top: 12px;
+  }
+
+  /* ========== 教育背景 & footer ========== */
+  .edu-card {
+    border: var(--border); box-shadow: var(--shadow);
+    background: var(--blue);
+    padding: 30px; display: flex; flex-wrap: wrap;
+    justify-content: space-between; align-items: center; gap: 16px;
+  }
+  .edu-card h3 { font-size: 1.5rem; }
+  .edu-card .period {
+    background: #fff; border: var(--border);
+    padding: 6px 14px; font-weight: 900;
+    transform: rotate(-2deg);
+  }
+  footer {
+    margin-top: 60px;
+    background: var(--ink); color: var(--bg);
+    padding: 40px 20px; text-align: center;
+  }
+  footer .foot-big {
+    font-family: "Archivo Black", sans-serif;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    color: var(--yellow);
+  }
+  footer p { margin-top: 10px; font-size: .9rem; }
+
+  /* ========== 打印 ========== */
+  @media print {
+    nav, .marquee { display: none; }
+    body { background: #fff; }
+    .project-block, .skill-card, .highlight-card, .edu-card, .sticker { box-shadow: none; }
+  }
+
+  @media (max-width: 800px) {
+    .hero-grid { grid-template-columns: 1fr; }
+    :root { --shadow: 5px 5px 0 var(--ink); }
+  }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav>
+  <div class="brand">HCZ.DEV</div>
+  <ul>
+    <li><a href="#skills">技能</a></li>
+    <li><a href="#project">项目</a></li>
+    <li><a href="#highlights">亮点</a></li>
+    <li><a href="#education">教育</a></li>
+    <li><a href="#contact">联系我</a></li>
+  </ul>
+</nav>
+
+<div class="marquee">
+  <div class="marquee-inner">
+    <span>JAVA 21</span><span>SPRING BOOT 3</span><span>MYSQL</span><span>REDIS</span><span>ROCKETMQ</span><span>SHARDINGSPHERE</span><span>JWT + RBAC</span><span>OUTBOX 模式</span><span>可观测性</span><span>VUE 3</span>
+    <span>JAVA 21</span><span>SPRING BOOT 3</span><span>MYSQL</span><span>REDIS</span><span>ROCKETMQ</span><span>SHARDINGSPHERE</span><span>JWT + RBAC</span><span>OUTBOX 模式</span><span>可观测性</span><span>VUE 3</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ================= HERO ================= -->
+  <header class="hero" id="contact">
+    <div class="hero-grid">
+      <div>
+        <h1>你好，我是<br><span class="hl">胡朝正</span></h1>
+        <div class="job-intent">求职意向：JAVA 后端开发工程师</div>
+        <div class="hero-badges">
+          <span class="badge">独立全栈开发</span>
+          <span class="badge">高并发设计</span>
+          <span class="badge">消息可靠性</span>
+          <span class="badge">缓存降级思维</span>
+          <span class="badge">60+ 自动化测试</span>
+        </div>
+      </div>
+      <div class="contact-stickers">
+        <div class="sticker"><b>电话</b><span>152-9790-6020</span></div>
+        <div class="sticker"><b>邮箱</b><span>zilvdexiaozheng@qq.com</span></div>
+        <div class="sticker"><b>微信</b><span>15297906020</span></div>
+        <div class="sticker"><b>GITHUB</b><span>github.com/xxx</span></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= 技能 ================= -->
+  <section id="skills">
+    <div class="section-head">
+      <span class="num">01</span>
+      <h2>专业技能</h2>
+      <span class="rule"></span>
+    </div>
+    <div class="skills-grid">
+      <div class="skill-card">
+        <h3>Java <span class="tag">CORE</span></h3>
+        <p>扎实掌握 Java（21），熟悉集合、并发（线程池隔离、CAS、AQS）与 JVM 内存模型，具备良好的面向对象与领域建模能力。</p>
+      </div>
+      <div class="skill-card">
+        <h3>Spring Boot 3 <span class="tag">FRAMEWORK</span></h3>
+        <p>深入理解 IoC/AOP、声明式事务与 <code>@TransactionalEventListener</code> 事务事件机制，并用其解决分布式一致性问题。</p>
+      </div>
+      <div class="skill-card">
+        <h3>MySQL <span class="tag">DATABASE</span></h3>
+        <p>索引与执行计划优化、事务隔离级别、间隙锁；有 ShardingSphere 水平分表（分片键设计、唯一约束、数据迁移）实践经验。</p>
+      </div>
+      <div class="skill-card">
+        <h3>Redis <span class="tag">CACHE</span></h3>
+        <p>ZSet/Set/Hash 应用场景、Lua 脚本原子操作、分布式锁（SET NX EX + token 校验）、缓存击穿/雪崩防护与故障降级设计。</p>
+      </div>
+      <div class="skill-card">
+        <h3>RocketMQ <span class="tag">MESSAGING</span></h3>
+        <p>异步解耦、事务内 Outbox 可靠投递、消费幂等（event_id + consumer）、指数退避重试与死信处理。</p>
+      </div>
+      <div class="skill-card">
+        <h3>安全与权限 <span class="tag">SECURITY</span></h3>
+        <p>JWT 认证与 RBAC 权限模型，了解接口限流、安全审计与多实例缓存一致性方案。</p>
+      </div>
+      <div class="skill-card">
+        <h3>可观测性 <span class="tag">OBSERVABILITY</span></h3>
+        <p>结构化日志（ECS）、Vector 采集、OpenObserve 日志检索与告警、Spring Boot Admin。</p>
+      </div>
+      <div class="skill-card">
+        <h3>全栈 & 工程化 <span class="tag">FULLSTACK</span></h3>
+        <p>Vue 3 / Vite / Pinia，可独立完成全栈联调；熟悉 Git、Maven、Linux 基本运维。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 项目经历 ================= -->
+  <section id="project">
+    <div class="section-head">
+      <span class="num">02</span>
+      <h2>项目经历</h2>
+      <span class="rule"></span>
+    </div>
+
+    <div class="project-block">
+      <div class="project-title-bar">
+        <h3>SLOWFOOT 短视频内容社区平台</h3>
+        <span class="meta">独立开发 ｜ 2026.XX — 至今</span>
+      </div>
+      <div class="project-desc">
+        前后端分离的短视频与内容社区平台，支持视频/图文发布、内容审核、点赞收藏、关注 Feed、兴趣推荐、热榜排行与后台管理。后端为 Spring Boot 3 模块化单体：<span class="em">MySQL 保存业务事实</span>，<span class="em">Redis 承载派生数据</span>，<span class="em">RocketMQ 异步处理</span>通知、审核与派生更新。
+      </div>
+      <div class="project-body">
+        <div class="point">
+          <span class="pnum">1</span>
+          <p><b>负责全部后端模块的设计与开发</b>：用户认证、作品发布、互动、评论、审核、Feed、推荐、热榜、通知与权限后台，完成 60+ 单元/契约测试保障核心链路正确性。</p>
+        </div>
+        <div class="point">
+          <span class="pnum">2</span>
+          <p>设计 <b>"OSS 私有桶直传 + 临时签名 URL + 事务内审核任务"</b> 发布链路：作品、资源与审核任务同事务落库，调度器以租约抢占（条件 UPDATE + 超时恢复）驱动异步审核，多实例部署不会重复消费。</p>
+        </div>
+        <div class="point">
+          <span class="pnum">3</span>
+          <p>以 MySQL 为唯一权威数据源、Redis 仅存可重建派生数据，为推荐、热榜、Feed 逐类设计 <b>Redis 故障降级路径</b>（受限 MySQL 查询兜底）与后台重建任务，保证缓存故障不丢业务数据。</p>
+        </div>
+        <div class="point">
+          <span class="pnum">4</span>
+          <p>将通知、互动统计、热榜与推荐更新改造为 <b>事务内 Outbox + RocketMQ</b> 模式：业务与事件行同成同败，投递器租约抢占、指数退避重试、8 次失败进入死信并输出结构化告警，消除"事务提交后进程退出导致事件丢失"窗口；消费端按 event_id + consumer 幂等。</p>
+        </div>
+        <div class="point">
+          <span class="pnum">5</span>
+          <p>针对并发互动，将点赞/收藏设计为 <b>幂等 PUT/DELETE + 数据库条件写入</b>（INSERT IGNORE / 状态条件更新），重复点击与网络重试不再产生不可预测状态；统计字段一律原子增量 SQL 更新并置于事务 BEFORE_COMMIT 阶段，避免读改写丢失且失败可回滚。</p>
+        </div>
+        <div class="point">
+          <span class="pnum">6</span>
+          <p>热榜实现 <b>实时更新 + 定时快照双通道</b>：Lua 脚本原子完成"替换成员分数 + TopK 裁剪 + 版本号递增"，定时全量重建凭 revision 版本号丢弃过期扫描结果，重建任务加分布式锁防止多实例重复消耗数据库。</p>
+        </div>
+        <div class="point">
+          <span class="pnum">7</span>
+          <p>建设访问控制链路：JWT + RBAC 权限快照引入 <b>Redis 全局版本号</b> 实现多实例缓存一致失效；接口限流用 Lua 原子完成 INCR + 窗口过期，Redis 故障时 fail-close；登录失败/权限拒绝/限流触发均输出结构化安全审计事件至 OpenObserve。</p>
+        </div>
+        <div class="point">
+          <span class="pnum">8</span>
+          <p>使用 ShardingSphere 对点赞、分享、通知、浏览/搜索历史等高频互动表设计 <b>4 路水平分表</b>（作品/用户双维度分片键），编写可切换 profile、数据回填与一致性校验脚本。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 三大亮点 ================= -->
+  <section id="highlights">
+    <div class="section-head">
+      <span class="num">03</span>
+      <h2>最值得讲的三个亮点</h2>
+      <span class="rule"></span>
+    </div>
+    <div class="highlights-grid">
+      <div class="highlight-card">
+        <div class="hc-head">OUTBOX 可靠性取舍 <span>★</span></div>
+        <div class="hc-body">
+          <span class="arrow">问题 → 方案 → 边界</span>
+          事务提交后进程退出会丢事件 → 业务与 Outbox 事件行同事务落库，租约抢占投递 + 指数退避 + 死信告警。
+          <div class="chain">诚实边界：at-least-once + 消费幂等，不是"绝对一致"；死信重放与派生数据对账仍需运维关注。</div>
+        </div>
+      </div>
+      <div class="highlight-card">
+        <div class="hc-head">热榜 REVISION 并发保护 <span>★</span></div>
+        <div class="hc-body">
+          <span class="arrow">竞态 → 版本号 → 原子化</span>
+          定时全量重建的旧快照会覆盖实时更新的数据 → Lua 脚本原子完成分数替换 + TopK 裁剪 + 版本递增，凭 revision 版本号丢弃过期扫描结果。
+          <div class="chain">配套：重建任务分布式锁，防止多实例重复消耗数据库。</div>
+        </div>
+      </div>
+      <div class="highlight-card">
+        <div class="hc-head">TOGGLE 幂等悖论的演进 <span>★</span></div>
+        <div class="hc-body">
+          <span class="arrow">发现 → 权衡 → 根治</span>
+          toggle 接口天然非幂等，重复请求产生不可预测状态 → 从"Redis 互斥锁缓解"演进到"幂等 PUT/DELETE + 条件写入根治"。
+          <div class="chain">完整展示"发现问题 → 权衡方案 → 根治缺陷"的工程思维。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 教育背景 ================= -->
+  <section id="education">
+    <div class="section-head">
+      <span class="num">04</span>
+      <h2>教育背景</h2>
+      <span class="rule"></span>
+    </div>
+    <div class="edu-card">
+      <h3>江西工程学院 ｜ 软件工程 ｜ 本科</h3>
+      <span class="period">2023.09 — 20X27.06</span>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="foot-big">让每一条简历内容，都能在面试中展开证明。</div>
+  <p>© 2026 胡朝正 ｜ Java 后端开发工程师 ｜ 本简历不含任何编造数据</p>
+</footer>
+
+<script>
+  // 导航点击平滑滚动 + 高亮当前区块
+  const links = document.querySelectorAll('nav a');
+  links.forEach(link => {
+    link.addEventListener('click', () => {
+      links.forEach(l => l.style.background = '');
+    });
+  });
+</script>
+
+</body>
+</html>

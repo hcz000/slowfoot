@@ -1,185 +1,211 @@
 <template>
-  <div class="home-page">
-    <section class="welcome-panel">
-      <div class="welcome-copy">
-        <div class="eyebrow"><span class="eyebrow-line" />今日精选</div>
-        <h1>{{ route.meta.isSearch ? `搜索「${route.params.key}」` : '今天，想看点什么？' }}</h1>
-        <p>{{ route.meta.isSearch ? '找到你感兴趣的内容，慢慢看。' : '从喜欢的频道开始，发现下一段值得收藏的灵感。' }}</p>
-        <div class="welcome-actions">
-          <el-button type="primary" size="large" @click="router.push('/pushVideo')">
-            <el-icon><Compass /></el-icon>浏览推荐
-          </el-button>
-          <el-button plain size="large" @click="openSearch">
-            <el-icon><Search /></el-icon>搜索内容
-          </el-button>
-        </div>
+  <main v-if="route.query.play" class="focused-work-page">
+    <div v-if="selectedLoading" class="focused-state">
+      <i class="mdi mdi-loading mdi-spin" />
+      <span>正在加载作品</span>
+    </div>
+    <div v-else-if="selectedError" class="focused-state focused-error">
+      <strong>作品暂时无法打开</strong>
+      <span>{{ selectedError }}</span>
+      <button type="button" @click="closeVideo">返回</button>
+    </div>
+    <WorkViewer v-else-if="selectedVideo && isReaderWork" class="focused-reader" :work="selectedVideo" @close="closeVideo" />
+    <section v-else-if="selectedVideo" class="focused-video-view">
+      <header class="focused-video-header">
+        <button type="button" aria-label="返回" @click="closeVideo"><i class="mdi mdi-arrow-left" /></button>
+        <span>视频作品</span>
+      </header>
+      <div class="focused-video-content">
+        <video controls playsinline preload="metadata" :poster="selectedVideo.coverFileId ? apiFileGet(selectedVideo.coverFileId) : undefined">
+          <source :src="selectedVideo.primaryFileId ? apiFileGet(selectedVideo.primaryFileId) : ''" :type="selectedVideo.format || 'video/mp4'" />
+        </video>
+        <h1>{{ selectedVideo.title || '未命名作品' }}</h1>
+        <p v-if="selectedVideo.description">{{ selectedVideo.description }}</p>
       </div>
-      <div class="welcome-mark" aria-hidden="true">
-        <span class="mark-ring mark-ring-one" />
-        <span class="mark-ring mark-ring-two" />
-        <span class="mark-play"><VideoCameraFilled /></span>
+    </section>
+  </main>
+
+  <div v-else class="home-page">
+    <section class="discover-heading">
+      <div>
+        <span class="eyebrow"><i /> DISCOVER SOMETHING NEW</span>
+        <h1>{{ route.meta.isSearch ? `搜索「${route.params.key}」` : '发现值得收藏的新鲜事' }}</h1>
+        <p>{{ route.meta.isSearch ? '找到同好，也找到更多灵感。' : '视频、图片和文字，每一种分享都值得被看见。' }}</p>
       </div>
+      <el-button class="recommend-button" type="primary" round size="large" @click="router.push('/pushVideo')">
+        <el-icon><Compass /></el-icon>为你推荐
+      </el-button>
     </section>
 
     <div class="content-grid">
       <main class="feed-column">
         <div class="section-heading">
-          <div>
-            <span class="section-kicker">EXPLORE</span>
-            <h2>{{ route.meta.isSearch ? '搜索结果' : '热门视频' }}</h2>
-          </div>
-          <div class="view-meta"><span class="status-dot" />实时更新</div>
+          <h2>{{ pageTitle }}</h2>
+          <span class="live-label"><i />持续更新</span>
         </div>
         <div class="feed-tabs">
-          <button class="feed-tab is-active" type="button">{{ currentLabel }}</button>
-          <button class="feed-tab" type="button" @click="router.push('/pushVideo')">为你推荐</button>
-          <button v-if="userStore.token" class="feed-tab" type="button" @click="router.push('/followVideo')">关注动态</button>
+          <button class="feed-tab active" type="button">{{ currentLabel }}</button>
+          <button class="feed-tab" type="button" @click="router.push('/pushVideo')">推荐</button>
+          <button v-if="userStore.token" class="feed-tab" type="button" @click="router.push('/followVideo')">关注</button>
+          <button class="feed-tab search-tab" type="button" aria-label="搜索" @click="openSearch"><el-icon><Search /></el-icon></button>
         </div>
-        <VideoListVue :video-list="videoList" :loading="isLoading" :no-data-msg="route.meta.isSearch ? '没有找到相关视频' : '暂时还没有视频，去推荐频道看看吧'" />
+        <VideoListVue :video-list="videoList" :loading="isLoading" :no-data-msg="emptyMessage" />
       </main>
 
       <aside class="side-column">
         <hot-list />
-        <section class="side-note">
-          <span class="note-icon"><Star /></span>
-          <div>
-            <strong>记录你的灵感</strong>
-            <p>登录后可以收藏、点赞和关注创作者。</p>
-          </div>
-          <el-button v-if="!userStore.token" text type="primary" @click="openLogin">登录</el-button>
+        <section v-if="!userStore.token" class="login-card">
+          <span class="login-icon"><Star /></span>
+          <div><strong>记录你的灵感</strong><p>登录后可以收藏、点赞和关注创作者。</p></div>
+          <el-button text type="primary" @click="openLogin">登录</el-button>
+        </section>
+        <section v-else class="login-card signed-card">
+          <span class="login-icon"><CircleCheck /></span>
+          <div><strong>欢迎回来</strong><p>去关注动态看看创作者的新作品。</p></div>
         </section>
       </aside>
     </div>
 
-    <el-dialog :model-value="dialog" fullscreen :show-close="false" :close-on-press-escape="false" :close-on-click-modal="false">
-      <el-card v-if="dialog" shadow="never"><Video :video-info="searchVideoInfo" :close-video="closeVideo" /></el-card>
-    </el-dialog>
     <auth ref="authRef" :show-trigger="false" />
   </div>
 </template>
 
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { Compass, Search, Star, VideoCameraFilled } from '@element-plus/icons-vue'
+import { CircleCheck, Compass, Search, Star } from '@element-plus/icons-vue'
 import { useRoute } from 'vue-router'
-import { apiGetClassifyByUser } from '../../apis/classify'
+import router from '../../router'
+import { apiFileGet } from '../../apis/file'
 import { apiGetVideoById, apiSearchVideo, apiVideoByClassfiy } from '../../apis/video'
 import { useUserStore } from '../../stores'
-import Video from '../../components/video/index.vue'
+import WorkViewer from '../../components/video/WorkViewer.vue'
 import VideoListVue from '../../components/video/list.vue'
 import hotList from '../../components/hotList.vue'
 import auth from '../auth/index.vue'
-import router from '../../router/index.js'
 
-const userStore = useUserStore()
 const route = useRoute()
-const authRef = ref()
-const userClassifys = ref([])
-const isLoading = ref(true)
+const userStore = useUserStore()
+const authRef = ref(null)
 const videoList = ref([])
-const currentClassify = ref(0)
-const searchVideoInfo = ref(null)
+const isLoading = ref(true)
+const selectedVideo = ref(null)
+const selectedLoading = ref(false)
+const selectedError = ref('')
 const pageInfo = ref({ page: 1, limit: 15 })
-const dialog = computed(() => Boolean(searchVideoInfo.value))
-const currentLabel = computed(() => {
-  if (route.meta.isSearch) return '搜索结果'
-  if (route.meta.isClassify) return '频道内容'
-  return '全部'
-})
+let selectedRequestSequence = 0
+const isReaderWork = computed(() => ['IMAGE', 'TEXT'].includes(selectedVideo.value?.workType))
+const isSearch = computed(() => Boolean(route.meta.isSearch))
+const isCategory = computed(() => Boolean(route.meta.isClassify))
+const pageTitle = computed(() => isSearch.value ? '搜索结果' : isCategory.value ? '频道内容' : '热门作品')
+const currentLabel = computed(() => isSearch.value ? '搜索结果' : isCategory.value ? '频道内容' : '精选')
+const emptyMessage = computed(() => isSearch.value ? '没有找到相关作品' : isCategory.value ? '这个频道暂时还没有作品' : '暂时还没有热门作品')
 
-const getCurrentClassifyVideo = () => {
-  if (route.meta.isSearch || pageInfo.value.page > 1) return
+const loadVideos = async () => {
   isLoading.value = true
-  apiVideoByClassfiy(currentClassify.value, pageInfo.value.page, pageInfo.value.limit).then(({ data }) => {
-    if (!data.success) return
-    const items = Array.isArray(data.data) ? data.data : (data.data?.records || [])
-    videoList.value = videoList.value.concat(items)
-  }).catch(() => { videoList.value = [] }).finally(() => { isLoading.value = false })
+  try {
+    let response
+    if (isSearch.value) response = await apiSearchVideo(route.params.key, pageInfo.value.page, pageInfo.value.limit)
+    else response = await apiVideoByClassfiy(isCategory.value ? Number(route.params.classify) : 0, pageInfo.value.page, pageInfo.value.limit)
+    const data = response.data
+    if (data.success) {
+      const items = Array.isArray(data.data) ? data.data : data.data?.records || []
+      videoList.value = pageInfo.value.page === 1 ? items : videoList.value.concat(items)
+    } else if (pageInfo.value.page === 1) videoList.value = []
+  } catch { if (pageInfo.value.page === 1) videoList.value = [] }
+  finally { isLoading.value = false }
 }
+const loadSelectedVideo = async () => {
+  const sequence = ++selectedRequestSequence
+  const workId = route.query.play
+  selectedVideo.value = null
+  selectedError.value = ''
+  if (!workId) { selectedLoading.value = false; return }
 
-const getSearchVideo = () => {
-  isLoading.value = true
-  apiSearchVideo(route.params.key, pageInfo.value.page, pageInfo.value.limit).then(({ data }) => {
-    if (data.success) videoList.value = videoList.value.concat(data.data?.records || [])
-  }).catch(() => { videoList.value = [] }).finally(() => { isLoading.value = false })
+  selectedLoading.value = true
+  try {
+    const { data } = await apiGetVideoById(workId)
+    if (sequence !== selectedRequestSequence) return
+    if (!data?.success || !data.data) throw new Error(data?.message || '请稍后重试。')
+    selectedVideo.value = data.data
+  } catch (error) {
+    if (sequence === selectedRequestSequence) selectedError.value = error?.response?.data?.message || error?.message || '请稍后重试。'
+  } finally {
+    if (sequence === selectedRequestSequence) selectedLoading.value = false
+  }
 }
-
 const initView = () => {
-  pageInfo.value.page = 1
+  pageInfo.value = { page: 1, limit: 15 }
   videoList.value = []
-  if (route.meta.isSearch) {
-    currentClassify.value = -1
-    getSearchVideo()
-  } else {
-    currentClassify.value = route.meta.isClassify ? route.params.classify : 0
-    getCurrentClassifyVideo()
-    if (!route.meta.isClassify) apiGetClassifyByUser().then(({ data }) => { if (data.success) userClassifys.value = data.data || [] })
-  }
   if (route.query.play) {
-    apiGetVideoById(route.query.play).then(({ data }) => { if (data.success) searchVideoInfo.value = data.data })
-  } else searchVideoInfo.value = null
-}
-
-const closeVideo = () => {
-  router.back()
-  searchVideoInfo.value = null
-}
-const openSearch = () => document.querySelector('.desktop-search')?.focus()
-const openLogin = () => authRef.value?.open?.()
-const listenScroll = () => {
-  if (!route.meta.isSearch || isLoading.value) return
-  const scrollTop = document.documentElement.scrollTop || document.body.scrollTop
-  const windowHeight = document.documentElement.clientHeight || document.body.clientHeight
-  const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight
-  if (scrollHeight - scrollTop - windowHeight < 150) {
-    isLoading.value = true
-    pageInfo.value.page++
-    getSearchVideo()
+    isLoading.value = false
+    loadSelectedVideo()
+    return
   }
+  loadVideos()
+  loadSelectedVideo()
+}
+const openSearch = () => window.dispatchEvent(new Event('slowfoot:open-search'))
+const openLogin = () => authRef.value?.open?.()
+const closeVideo = () => {
+  selectedVideo.value = null
+  if (route.query.play) router.back()
+}
+const listenScroll = () => {
+  if (!isSearch.value || isLoading.value || videoList.value.length === 0) return
+  const nearBottom = document.documentElement.scrollHeight - window.scrollY - window.innerHeight < 180
+  if (nearBottom) { pageInfo.value.page += 1; loadVideos() }
 }
 
 watch(() => route.fullPath, initView)
 onMounted(() => {
   initView()
   window.addEventListener('scroll', listenScroll)
+  if (route.query.login === 'required') setTimeout(openLogin, 0)
 })
 onUnmounted(() => window.removeEventListener('scroll', listenScroll))
 </script>
 
 <style scoped>
-.home-page { width: min(1440px, 100%); margin: 0 auto; padding: 34px 42px 64px; box-sizing: border-box; }
-.welcome-panel { position: relative; display: flex; justify-content: space-between; min-height: 250px; padding: 34px 42px; overflow: hidden; background: #1b222c; border: 1px solid #293442; border-radius: 14px; box-sizing: border-box; }
-.welcome-panel::after { position: absolute; right: -80px; bottom: -140px; width: 410px; height: 250px; content: ''; background: #273847; border-radius: 50%; transform: rotate(-18deg); opacity: .7; }
-.welcome-copy { position: relative; z-index: 1; }
-.eyebrow { display: flex; align-items: center; gap: 9px; color: #f2bd5c; font-size: 11px; font-weight: 800; letter-spacing: 1.8px; text-transform: uppercase; }
-.eyebrow-line { width: 22px; height: 2px; background: #f2bd5c; }
-.welcome-panel h1 { max-width: 600px; margin: 18px 0 10px; color: #f5f7fa; font-size: clamp(28px, 3.2vw, 46px); font-weight: 760; letter-spacing: 0; line-height: 1.12; }
-.welcome-panel p { margin: 0; color: #95a2b2; font-size: 14px; }
-.welcome-actions { display: flex; gap: 12px; margin-top: 27px; }
-.welcome-actions .el-button { height: 42px; padding: 0 18px; border-radius: 7px; }
-.welcome-actions .el-button + .el-button { margin-left: 0; }
-.welcome-actions :deep(.el-icon) { margin-right: 7px; }
-.welcome-mark { position: relative; z-index: 1; width: 205px; margin: 4px 30px 0 0; }
-.mark-ring { position: absolute; display: block; border: 1px solid #4c6d7b; border-radius: 50%; transform: rotate(-24deg); }
-.mark-ring-one { top: 0; left: 8px; width: 168px; height: 168px; }
-.mark-ring-two { top: 24px; left: 33px; width: 118px; height: 118px; border-color: #f2bd5c; }
-.mark-play { position: absolute; top: 64px; left: 86px; display: grid; place-items: center; width: 52px; height: 52px; color: #151a21; background: #f2bd5c; border-radius: 50%; box-shadow: 0 10px 30px rgba(242, 189, 92, .2); }
-.content-grid { display: grid; grid-template-columns: minmax(0, 1fr) 288px; gap: 34px; margin-top: 42px; }
-.section-heading { display: flex; align-items: flex-end; justify-content: space-between; }
-.section-kicker { color: #677487; font-size: 10px; font-weight: 800; letter-spacing: 1.6px; }
-.section-heading h2 { margin: 6px 0 0; color: #f0f3f7; font-size: 25px; font-weight: 720; }
-.view-meta { display: flex; align-items: center; gap: 7px; padding-bottom: 3px; color: #748093; font-size: 11px; }
-.status-dot { width: 6px; height: 6px; background: #66d19e; border-radius: 50%; }
-.feed-tabs { display: flex; gap: 22px; margin: 26px 0 18px; border-bottom: 1px solid #252d37; }
-.feed-tab { position: relative; padding: 0 0 12px; color: #788597; background: transparent; border: 0; cursor: pointer; font: inherit; font-size: 13px; }
-.feed-tab:hover, .feed-tab.is-active { color: #f2bd5c; }
-.feed-tab.is-active::after { position: absolute; right: 0; bottom: -1px; left: 0; height: 2px; content: ''; background: #f2bd5c; }
-.side-column { display: flex; flex-direction: column; gap: 18px; }
-.side-note { display: flex; align-items: flex-start; gap: 11px; padding: 17px; background: #171d25; border: 1px solid #252e3a; border-radius: 10px; }
-.note-icon { display: grid; flex: 0 0 28px; place-items: center; width: 28px; height: 28px; color: #151a21; background: #f2bd5c; border-radius: 7px; }
-.side-note strong { display: block; padding-top: 2px; color: #e8edf3; font-size: 12px; }
-.side-note p { margin: 5px 0 0; color: #7d8999; font-size: 11px; line-height: 1.55; }
-.side-note .el-button { flex: 0 0 auto; margin: 0 0 0 auto; padding: 3px; }
-@media (max-width: 980px) { .home-page { padding: 26px 24px 48px; } .content-grid { grid-template-columns: 1fr; } .side-column { display: grid; grid-template-columns: 1fr 1fr; } }
-@media (max-width: 600px) { .home-page { padding: 18px 14px 36px; } .welcome-panel { min-height: 260px; padding: 26px 22px; } .welcome-mark { position: absolute; right: -40px; bottom: -20px; opacity: .5; transform: scale(.8); } .welcome-panel h1 { font-size: 30px; } .welcome-actions .el-button { padding: 0 12px; } .side-column { display: flex; } .view-meta { display: none; } }
+.focused-work-page { width: 100%; height: 100%; min-height: 100dvh; color: #333; background: #fff; }
+.focused-reader { width: 100%; height: 100%; min-height: 100dvh; }
+.focused-state { display: flex; min-height: 100dvh; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: #888; font-size: 14px; }
+.focused-state > i { color: #ff2442; font-size: 30px; }
+.focused-error strong { color: #333; font-size: 18px; }
+.focused-error button { margin-top: 8px; padding: 9px 20px; color: #fff; background: #ff2442; border: 0; border-radius: 999px; cursor: pointer; }
+.focused-video-view { display: flex; width: 100%; height: 100%; min-height: 100dvh; flex-direction: column; color: #fff; background: #111; }
+.focused-video-header { display: flex; height: 58px; flex: 0 0 58px; align-items: center; gap: 14px; padding: 0 24px; color: #ccc; border-bottom: 1px solid #292929; box-sizing: border-box; font-size: 13px; }
+.focused-video-header button { display: grid; width: 34px; height: 34px; place-items: center; color: #fff; background: #262626; border: 0; border-radius: 50%; cursor: pointer; font-size: 17px; }
+.focused-video-content { width: min(1120px, calc(100% - 40px)); margin: auto; padding: 28px 0 48px; }
+.focused-video-content video { display: block; width: 100%; max-height: calc(100dvh - 230px); aspect-ratio: 16 / 9; background: #000; border-radius: 12px; object-fit: contain; }
+.focused-video-content h1 { margin: 20px 0 8px; font-size: clamp(20px, 3vw, 28px); }
+.focused-video-content p { margin: 0; color: #aaa; font-size: 14px; line-height: 1.7; white-space: pre-wrap; }
+.home-page { width: min(1500px, 100%); margin: 0 auto; padding: 30px 32px 64px; }
+.discover-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: 5px 0 29px; }
+.eyebrow { display: flex; align-items: center; gap: 8px; color: #999; font-size: 10px; font-weight: 700; letter-spacing: 1.7px; }
+.eyebrow i { width: 7px; height: 7px; background: #ff2442; border-radius: 50%; }
+.discover-heading h1 { margin: 12px 0 8px; color: #222; font-size: clamp(26px, 3vw, 38px); font-weight: 750; letter-spacing: -.8px; line-height: 1.25; }
+.discover-heading p { margin: 0; color: #888; font-size: 13px; }
+.recommend-button { flex: 0 0 auto; height: 42px; padding: 0 21px; border: 0; font-weight: 650; }
+.recommend-button :deep(.el-icon) { margin-right: 7px; }
+.content-grid { display: grid; grid-template-columns: minmax(0, 1fr) 276px; gap: 30px; }
+.section-heading { display: flex; align-items: center; justify-content: space-between; }
+.section-heading h2 { margin: 0; color: #333; font-size: 19px; font-weight: 700; }
+.live-label { display: flex; align-items: center; gap: 6px; color: #aaa; font-size: 11px; }
+.live-label i { width: 6px; height: 6px; background: #35bd7b; border-radius: 50%; }
+.feed-tabs { display: flex; align-items: center; gap: 26px; margin: 18px 0 21px; border-bottom: 1px solid #ececec; }
+.feed-tab { position: relative; padding: 0 1px 12px; color: #999; background: transparent; border: 0; cursor: pointer; font: inherit; font-size: 13px; }
+.feed-tab:hover, .feed-tab.active { color: #333; }
+.feed-tab.active { font-weight: 650; }
+.feed-tab.active::after { position: absolute; bottom: -1px; left: 50%; width: 20px; height: 3px; content: ''; background: #ff2442; border-radius: 3px; transform: translateX(-50%); }
+.search-tab { margin-left: auto; padding-right: 2px; font-size: 16px; }
+.side-column { display: flex; flex-direction: column; gap: 15px; padding-top: 1px; }
+.login-card { display: flex; align-items: flex-start; gap: 11px; padding: 17px; background: #fff; border: 1px solid #f0f0f0; border-radius: 13px; }
+.login-icon { display: grid; flex: 0 0 32px; place-items: center; width: 32px; height: 32px; color: #ff2442; background: #fff0f2; border-radius: 10px; }
+.login-card strong { display: block; padding-top: 2px; color: #333; font-size: 13px; }
+.login-card p { margin: 5px 0 0; color: #999; font-size: 11px; line-height: 1.5; }
+.login-card .el-button { margin-left: auto; padding: 3px; }
+.signed-card .login-icon { color: #26965e; background: #ebf8f1; }
+@media (max-width: 1080px) { .home-page { padding: 25px 23px 52px; } .content-grid { grid-template-columns: minmax(0, 1fr) 240px; gap: 22px; } }
+@media (max-width: 900px) { .content-grid { grid-template-columns: 1fr; } .side-column { display: grid; grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) { .home-page { padding: 19px 12px 42px; } .discover-heading { align-items: flex-start; padding: 3px 3px 22px; } .discover-heading h1 { margin-top: 10px; font-size: 25px; } .discover-heading p { max-width: 250px; font-size: 12px; line-height: 1.6; } .recommend-button { height: 36px; padding: 0 13px; font-size: 12px; } .content-grid { gap: 25px; } .section-heading { padding: 0 3px; } .feed-tabs { margin: 15px 3px 16px; } .side-column { display: flex; } .focused-video-header { padding: 0 14px; } .focused-video-content { width: calc(100% - 24px); padding: 18px 0 30px; } .focused-video-content video { max-height: 62dvh; border-radius: 8px; } }
 </style>

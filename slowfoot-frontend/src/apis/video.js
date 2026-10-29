@@ -39,7 +39,9 @@ export const apiGetVideoBySimilar = (labelNames, id) => {
     })
 }
 
-export const apiStarVideo = (workId) => request.post(`/work/like/${workId}`)
+export const apiStarVideo = (workId, liked) => liked
+    ? request.put(`/work/like/${workId}`)
+    : request.delete(`/work/like/${workId}`)
 
 export const apiGetHistoryVideo = (page = 1, limit = 15) => {
     return request.get(`/work/history`, {

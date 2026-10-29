@@ -40,5 +40,9 @@ export const apiRemoveFavorite = (id) => {
  * @returns 
  */
 export const apiFavoriteVideo = (favoriteId, videoId)=>{
-    return request.post(`/work/favorites/${favoriteId}/${videoId}`)
+    return request.put(`/work/favorites/${favoriteId}/${videoId}`)
+}
+
+export const apiUnfavoriteVideo = (favoriteId, videoId)=>{
+    return request.delete(`/work/favorites/${favoriteId}/${videoId}`)
 }

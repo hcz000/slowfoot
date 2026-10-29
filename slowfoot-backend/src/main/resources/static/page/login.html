@@ -1,126 +1,184 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <title>登陆</title>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <meta http-equiv="Access-Control-Allow-Origin" content="*">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="format-detection" content="telephone=no">
-    <link rel="stylesheet" href="../lib/layui-v2.6.3/css/layui.css" media="all">
-    <!--[if lt IE 9]>
-    <script src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></script>
-    <script src="https://cdn.staticfile.org/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#101c31">
+    <meta name="robots" content="noindex,nofollow">
+    <title>SlowFoot 管理控制台 · 登录</title>
     <style>
-        html, body {width: 100%;height: 100%;overflow: hidden}
-        body {background: #1E9FFF;}
-        body:after {content:'';background-repeat:no-repeat;background-size:cover;-webkit-filter:blur(3px);-moz-filter:blur(3px);-o-filter:blur(3px);-ms-filter:blur(3px);filter:blur(3px);position:absolute;top:0;left:0;right:0;bottom:0;z-index:-1;}
-        .layui-container {width: 100%;height: 100%;overflow: hidden}
-        .admin-login-background {width:360px;height:300px;position:absolute;left:50%;top:40%;margin-left:-180px;margin-top:-100px;}
-        .logo-title {text-align:center;letter-spacing:2px;padding:14px 0;}
-        .logo-title h1 {color:#1E9FFF;font-size:25px;font-weight:bold;}
-        .login-form {background-color:#fff;border:1px solid #fff;border-radius:3px;padding:14px 20px;box-shadow:0 0 8px #eeeeee;}
-        .login-form .layui-form-item {position:relative;}
-        .login-form .layui-form-item label {position:absolute;left:1px;top:1px;width:38px;line-height:36px;text-align:center;color:#d2d2d2;}
-        .login-form .layui-form-item input {padding-left:36px;}
-        .captcha {width:60%;display:inline-block;}
-        .captcha-img {display:inline-block;width:34%;float:right;}
-        .captcha-img img {height:34px;border:1px solid #e6e6e6;height:36px;width:100%;}
+        :root { color-scheme: light; font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif; color: #17243a; background: #f5f7fb; font-synthesis: none; }
+        * { box-sizing: border-box; }
+        html, body { min-width: 320px; min-height: 100%; margin: 0; }
+        body { min-height: 100vh; background: #f5f7fb; }
+        button, input { font: inherit; }
+        .login-shell { min-height: 100vh; display: grid; grid-template-columns: minmax(340px, .92fr) 1.08fr; }
+        .brand-panel { position: relative; isolation: isolate; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; padding: 42px clamp(32px, 6vw, 88px); color: #fff; background: radial-gradient(ellipse at 12% 86%, rgba(51, 112, 224, .34), transparent 42%), linear-gradient(145deg, #111d32 0%, #182c49 55%, #213c64 100%); }
+        .brand-panel::before, .brand-panel::after { position: absolute; z-index: -1; content: ""; border: 1px solid rgba(255,255,255,.08); border-radius: 50%; }
+        .brand-panel::before { width: 620px; height: 620px; right: -330px; top: 8%; }
+        .brand-panel::after { width: 450px; height: 450px; right: -245px; top: 18%; }
+        .brand-mark { display: flex; align-items: center; gap: 13px; font-size: 18px; font-weight: 700; letter-spacing: .04em; }
+        .brand-icon { display: grid; width: 42px; height: 42px; place-items: center; border: 1px solid rgba(255,255,255,.2); border-radius: 14px; background: linear-gradient(145deg, #62a3ff, #3674e4); box-shadow: 0 10px 28px rgba(22,101,225,.32); font-size: 15px; letter-spacing: -.06em; }
+        .brand-copy { max-width: 520px; margin: auto 0; padding: 64px 0; }
+        .eyebrow { margin: 0 0 18px; color: #8dbbff; font-size: 12px; font-weight: 700; letter-spacing: .18em; }
+        .brand-copy h1 { max-width: 480px; margin: 0; font-size: clamp(34px, 4.4vw, 56px); line-height: 1.25; letter-spacing: -.04em; }
+        .brand-copy > p { max-width: 430px; margin: 22px 0 0; color: #b7c5d9; font-size: 15px; line-height: 1.9; }
+        .brand-points { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 34px; }
+        .brand-points span { padding: 9px 12px; border: 1px solid rgba(255,255,255,.12); border-radius: 999px; background: rgba(255,255,255,.055); color: #d7e3f4; font-size: 12px; }
+        .brand-footer { display: flex; align-items: center; justify-content: space-between; gap: 14px; color: #8293ad; font-size: 12px; }
+        .brand-footer .status { display: inline-flex; align-items: center; gap: 8px; }
+        .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #41d6a3; box-shadow: 0 0 0 4px rgba(65,214,163,.12); }
+        .form-panel { display: grid; place-items: center; padding: 48px 28px; }
+        .login-card { width: min(100%, 440px); }
+        .mobile-brand { display: none; }
+        .form-kicker { margin: 0 0 10px; color: #5677a5; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+        .login-card h2 { margin: 0; color: #15243a; font-size: 30px; letter-spacing: -.04em; }
+        .form-intro { margin: 11px 0 32px; color: #75839a; font-size: 14px; line-height: 1.7; }
+        .field { margin: 0 0 20px; }
+        .field-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; }
+        .field label { color: #30415c; font-size: 13px; font-weight: 650; }
+        .field-hint { color: #99a4b5; font-size: 11px; }
+        .input-wrap { position: relative; }
+        .input-icon { position: absolute; top: 50%; left: 15px; display: grid; width: 18px; height: 18px; transform: translateY(-50%); color: #8392a8; pointer-events: none; }
+        .input-icon svg { width: 18px; height: 18px; }
+        .input-wrap input { width: 100%; height: 50px; padding: 0 15px 0 45px; border: 1px solid #dce3ed; border-radius: 12px; outline: none; background: #fff; color: #192943; font-size: 14px; transition: border-color .18s, box-shadow .18s, background .18s; }
+        .input-wrap input::placeholder { color: #a8b2c0; }
+        .input-wrap input:hover { border-color: #bcc9da; }
+        .input-wrap input:focus { border-color: #4c88ec; box-shadow: 0 0 0 4px rgba(76,136,236,.12); }
+        .captcha-row { display: grid; grid-template-columns: 1fr 128px; gap: 12px; }
+        .captcha-image { display: block; width: 128px; height: 50px; overflow: hidden; border: 1px solid #dce3ed; border-radius: 12px; background: #f4f7fb; cursor: pointer; object-fit: cover; }
+        .captcha-image:hover { border-color: #4c88ec; }
+        .captcha-note { margin: 8px 0 0; color: #96a1b0; font-size: 11px; }
+        .alert { display: none; margin: 0 0 16px; padding: 11px 13px; border: 1px solid #f2c9c7; border-radius: 10px; background: #fff4f3; color: #b33e38; font-size: 13px; line-height: 1.5; }
+        .alert.visible { display: block; }
+        .submit-button { display: flex; width: 100%; height: 52px; align-items: center; justify-content: center; gap: 10px; margin-top: 27px; border: 0; border-radius: 12px; background: #286fe8; box-shadow: 0 10px 22px rgba(40,111,232,.2); color: #fff; cursor: pointer; font-size: 14px; font-weight: 700; transition: transform .16s, box-shadow .16s, background .16s; }
+        .submit-button:hover { transform: translateY(-1px); background: #1f62d5; box-shadow: 0 13px 26px rgba(40,111,232,.25); }
+        .submit-button:focus-visible { outline: 3px solid rgba(40,111,232,.25); outline-offset: 3px; }
+        .submit-button:disabled { cursor: wait; opacity: .72; transform: none; }
+        .button-spinner { display: none; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .65s linear infinite; }
+        .submit-button.is-loading .button-spinner { display: block; }
+        .form-bottom { margin-top: 22px; color: #9aa5b5; font-size: 12px; text-align: center; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 820px) { .login-shell { grid-template-columns: 1fr; } .brand-panel { display: none; } .form-panel { min-height: 100vh; padding: 34px 22px; } .mobile-brand { display: flex; align-items: center; gap: 11px; margin-bottom: 48px; color: #203754; font-weight: 750; } .mobile-brand .brand-icon { width: 38px; height: 38px; border-radius: 12px; } .form-panel-inner { width: min(100%, 440px); } .login-card { width: 100%; } }
+        @media (max-width: 420px) { .form-panel { padding-inline: 20px; } .captcha-row { grid-template-columns: 1fr 112px; gap: 9px; } .captcha-image { width: 112px; } .login-card h2 { font-size: 27px; } }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
     </style>
 </head>
 <body>
-<div class="layui-container">
-    <div class="admin-login-background">
-        <div class="layui-form login-form">
-            <form class="layui-form" action="">
-                <div class="layui-form-item logo-title">
-                    <h1>后台登录</h1>
-                </div>
-                <div class="layui-form-item">
-                    <label class="layui-icon layui-icon-username" for="username"></label>
-                    <input type="text" name="account" lay-verify="required" placeholder="邮箱/学号" autocomplete="off" class="layui-input" value="">
-                </div>
-                <div class="layui-form-item">
-                    <label class="layui-icon layui-icon-password" for="password"></label>
-                    <input type="password" name="password" lay-verify="required|password" placeholder="密码" autocomplete="off" class="layui-input" value="">
-                </div>
-
-                <div class="layui-form-item">
-                    <button class="layui-btn layui-btn layui-btn-normal layui-btn-fluid" lay-submit="" lay-filter="login">登 录</button>
-                </div>
-            </form>
+<main class="login-shell">
+    <aside class="brand-panel" aria-label="SlowFoot 管理平台介绍">
+        <div class="brand-mark"><span class="brand-icon">SF</span><span>SlowFoot</span></div>
+        <div class="brand-copy">
+            <p class="eyebrow">CONTENT OPERATIONS</p>
+            <h1>让每一次创作<br>都被认真看见。</h1>
+            <p>内容管理、社区运营与平台配置都在这里完成。登录后即可进入 SlowFoot 管理工作台。</p>
+            <div class="brand-points"><span>内容审核</span><span>社区管理</span><span>平台配置</span></div>
         </div>
-    </div>
-</div>
-<script src="../lib/layui-v2.7.3/layui/layui.js"></script>
-<script src="../lib/jquery-3.4.1/jquery-3.4.1.min.js"></script>
+        <div class="brand-footer"><span>SlowFoot 管理控制台</span><span class="status"><i class="status-dot"></i>管理员安全入口</span></div>
+    </aside>
+    <section class="form-panel">
+        <div class="form-panel-inner">
+            <div class="mobile-brand"><span class="brand-icon">SF</span><span>SlowFoot 管理控制台</span></div>
+            <div class="login-card">
+                <p class="form-kicker">ADMIN CONSOLE</p>
+                <h2>欢迎回来</h2>
+                <p class="form-intro">使用管理员账号登录，继续管理你的内容社区。</p>
+                <form id="loginForm" novalidate>
+                    <div class="field">
+                        <div class="field-head"><label for="email">邮箱</label><span class="field-hint">管理员账号</span></div>
+                        <div class="input-wrap"><span class="input-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="14" rx="3"/><path d="m5 7 7 5 7-5"/></svg></span><input id="email" name="account" type="email" placeholder="请输入管理员邮箱" autocomplete="username" maxlength="50" required></div>
+                    </div>
+                    <div class="field">
+                        <div class="field-head"><label for="password">密码</label></div>
+                        <div class="input-wrap"><span class="input-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4.5" y="10" width="15" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 4v3"/></svg></span><input id="password" name="password" type="password" placeholder="请输入密码" autocomplete="current-password" required></div>
+                    </div>
+                    <div class="field">
+                        <div class="field-head"><label for="captchaCode">图形验证码</label><span class="field-hint">点击图片可更换</span></div>
+                        <div class="captcha-row">
+                            <div class="input-wrap"><span class="input-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/><path d="M14 14h2v2h-2zm4 0h2v6h-2zm-4 4h2v2h-2z"/></svg></span><input id="captchaCode" name="captchaCode" type="text" placeholder="输入验证码" autocomplete="off" maxlength="6" autocapitalize="off" spellcheck="false" required></div>
+                            <img class="captcha-image" id="captchaImage" src="" alt="图形验证码，点击刷新" title="点击刷新验证码" role="button" tabindex="0">
+                        </div>
+                        <p class="captcha-note">验证码有效期为 5 分钟</p>
+                    </div>
+                    <div class="alert" id="loginError" role="alert" aria-live="polite"></div>
+                    <input type="hidden" id="captchaUuid" name="uuid">
+                    <button class="submit-button" id="submitButton" type="submit"><span class="button-spinner" aria-hidden="true"></span><span id="buttonLabel">登录管理控制台</span><span aria-hidden="true">→</span></button>
+                </form>
+                <p class="form-bottom">仅限授权管理员访问 · 请勿在公共设备保存密码</p>
+            </div>
+        </div>
+    </section>
+</main>
 <script src="../api/urlConfig.js"></script>
-
-
 <script>
+(function () {
+    var form = document.getElementById('loginForm');
+    var errorBox = document.getElementById('loginError');
+    var submitButton = document.getElementById('submitButton');
+    var buttonLabel = document.getElementById('buttonLabel');
+    var captchaImage = document.getElementById('captchaImage');
 
-
-    layui.use(['form'], function () {
-        var form = layui.form,
-            layer = layui.layer;
-
-        // 粒子线条背景
-        $(document).ready(function(){
-            $('.layui-container').particleground({
-                dotColor:'#7ec7fd',
-                lineColor:'#7ec7fd'
-            });
+    function createUuid() {
+        if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0;
+            return (c === 'x' ? r : (r & 3 | 8)).toString(16);
         });
+    }
 
+    function refreshCaptcha() {
+        var uuid = createUuid();
+        document.getElementById('captchaUuid').value = uuid;
+        document.getElementById('captchaCode').value = '';
+        captchaImage.src = ipURL + '/slowfoot/login/captcha.jpg/' + encodeURIComponent(uuid) + '?t=' + Date.now();
+    }
 
-        // 进行登录操作
-        form.on('submit(login)', function (data) {
-            // 进行登录操作
-            data = data.field;
-            var json = {
-                "email":data.account,
-                "password":data.password
-            }
+    function showError(message) {
+        errorBox.textContent = message || '登录失败，请检查邮箱、密码和验证码。';
+        errorBox.classList.add('visible');
+    }
 
-                $.ajax({
-                url: ipURL+'/luckyjourney/login',
-                method: 'post',
-                data:JSON.stringify(json), 
-                contentType:'application/json',
-                success: function(res) {
-                    if (res.success) {
-                        localStorage.setItem('token',res.data.token);
-                        localStorage.setItem('refreshToken',res.data.refreshToken);
-                        localStorage.setItem("name",res.data.name)
-                        layer.msg("登录成功...正在跳转")
-                        window.location = '../index.html';
-                    } else{
-                        layer.msg(res.message);
-                    }
-
-                },
-                error: function(data) {
-                    layer.msg(data.message);
-                }
-            });
-
-
-            return false;
-        });
+    captchaImage.addEventListener('click', refreshCaptcha);
+    captchaImage.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); refreshCaptcha(); }
     });
 
+    form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        errorBox.classList.remove('visible');
+        if (!form.reportValidity()) return;
+        submitButton.disabled = true;
+        submitButton.classList.add('is-loading');
+        buttonLabel.textContent = '正在验证…';
+        try {
+            var response = await fetch(ipURL + '/slowfoot/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: document.getElementById('email').value.trim(),
+                    password: document.getElementById('password').value,
+                    captchaCode: document.getElementById('captchaCode').value.trim(),
+                    uuid: document.getElementById('captchaUuid').value
+                })
+            });
+            var result = await response.json().catch(function () { return {}; });
+            if (!response.ok || !result.success || !result.data) throw new Error(result.message || '登录失败，请检查账号信息。');
+            localStorage.setItem('token', result.data.token);
+            localStorage.setItem('refreshToken', result.data.refreshToken);
+            localStorage.setItem('name', result.data.name || '管理员');
+            window.location.href = '../index.html';
+        } catch (error) {
+            showError(error.message || '无法连接服务器，请确认后端正在运行。');
+            refreshCaptcha();
+        } finally {
+            submitButton.disabled = false;
+            submitButton.classList.remove('is-loading');
+            buttonLabel.textContent = '登录管理控制台';
+        }
+    });
 
-
-
+    refreshCaptcha();
+})();
 </script>
-
 </body>
-
-<script>
-
-</script>
 </html>
-

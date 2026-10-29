@@ -18,22 +18,28 @@
 ## 项目结构
 
 ```text
-src/main/java/org/hcz/
-├── controller/       Web 接口
-├── service/          业务服务
-├── entity/           数据库实体和接口对象
-├── mapper/           MyBatis-Plus Mapper
-├── messaging/        按功能组织的事件、消息、发布器和消费者
-│   ├── workinteraction/  作品互动、统计、推荐和热榜更新
-│   ├── notification/     通知创建
-│   ├── workaudit/        作品审核提交和完成事件
-│   └── commentaudit/     评论审核提交事件
-├── security/
-│   ├── access/       RBAC 鉴权和 Redis 接口限流
-│   └── SecurityAuditLogger.java  结构化安全审计日志
-├── schedul/          审核派发、热榜重建等定时任务
-├── config/            Spring、Redis、OSS、邮件等配置
-└── util/              JWT、Redis、分页等通用工具
+src/main/java/org/hcz/            按功能分包，每个功能自含 controller/service/mapper/entity/dto/event
+├── auth/             登录、验证码、邮件
+├── user/             用户、关注、收藏、订阅
+├── work/             作品发布、查询、分类、互动（service 下分 publish/query/category/interaction/moderation/adapter）
+│   └── event/        作品互动、统计、热榜、推荐事件的生产者与消费者
+├── comment/          评论（含评论审核提交事件）
+├── audit/            内容审核（client 阿里云内容安全适配、event、scheduler 审核派发）
+├── notification/     站内通知与 SSE 推送（含事件包）
+├── recommendation/   兴趣模型与热榜（service、scheduler）
+├── feed/             关注 Feed
+├── file/             OSS 与文件登记（含 file/config 的 OSS、分享域名配置）
+├── history/          浏览与搜索历史（entity/mapper，服务逻辑在 user 域）
+├── setting/          系统设置
+├── admin/            后台管理控制器与 RBAC 访问控制（security：Auth/AuthAspect/AuthStore/AdminInterceptor）
+└── common/           跨功能基础设施
+    ├── config/         Spring、Redis、JWT 等配置
+    ├── security/       SecurityAuditLogger；access/ 下 Limit、LimiterAop 接口限流
+    ├── messaging/      Event Outbox 可靠投递（entity/mapper/service/scheduler）
+    ├── constant/       状态、Redis Key、通知类型常量
+    ├── exception/      统一异常与错误响应
+    ├── util/           JWT、Redis、分页等通用工具
+    └── entity/ vo/ json/  BaseEntity、通用分页模型与审核 JSON 模型
 
 src/main/resources/
 ├── application.yml   应用配置
@@ -90,30 +96,30 @@ $env:DATASOURCE_USER = "root"
 $env:DATASOURCE_PASSWORD = "your-password"
 $env:REDIS_HOST = "127.0.0.1"
 $env:ROCKETMQ_NAME_SERVER = "127.0.0.1:9876"
-./mvnw.cmd spring-boot:run
+./mvnw.cmd spring-boot:run -Dspring-boot.run.jvmArguments=-Xmx256m
 ```
 
 也可以先打包再运行：
 
 ```bash
 ./mvnw clean package
-java -jar target/slowfoot-backend-0.0.1-SNAPSHOT.jar
+java -Xmx256m -jar target/slowfoot-backend-0.0.1-SNAPSHOT.jar
 ```
 
 Windows 使用：
 
 ```powershell
 ./mvnw.cmd clean package
-java -jar target/slowfoot-backend-0.0.1-SNAPSHOT.jar
+java -Xmx256m -jar target/slowfoot-backend-0.0.1-SNAPSHOT.jar
 ```
 
 ## 访问控制和安全审计
 
-访问控制能力统一位于 `org.hcz.security.access`：
+访问控制能力位于 `org.hcz.admin.security`，限流与审计日志位于 `org.hcz.common.security`：
 
-- `Auth`、`AuthAspect` 和 `AuthStore`：校验访问令牌和 RBAC 权限，并在角色或权限变更后使权限快照失效。
-- `Limit` 和 `LimiterAop`：使用 Redis 计数窗口限制接口调用频率，优先按用户 ID、未登录时按来源 IP 隔离限流桶。
-- `SecurityAuditLogger`：记录登录失败、鉴权拒绝和触发限流等结构化安全事件。
+- `Auth`、`AuthAspect` 和 `AuthStore`（admin.security）：校验访问令牌和 RBAC 权限，并在角色或权限变更后使权限快照失效；`AdminInterceptor` 拦截后台路径。
+- `Limit` 和 `LimiterAop`（common.security.access）：使用 Redis 计数窗口限制接口调用频率，优先按用户 ID、未登录时按来源 IP 隔离限流桶。
+- `SecurityAuditLogger`（common.security）：记录登录失败、鉴权拒绝和触发限流等结构化安全事件。
 
 启用 `observability` profile 后，可以在 OpenObserve 中集中查询安全事件并配置告警。字段、查询示例和部署参数见[可观测性文档](../docs/observability.md)。
 
@@ -128,9 +134,11 @@ RocketMQ 用于处理提交后的派生逻辑：
 - 审核事件：异步执行作品和评论审核
 - 审核完成事件：异步刷新审核后的派生数据
 
-消息代码统一放在 `org.hcz.messaging`，并按 `workinteraction`、`notification`、`workaudit` 和 `commentaudit` 功能分包。每个功能包自行维护 Spring 事件、RocketMQ 消息、发布器、消费者及 Topic/消费组常量，避免跨功能共享发布器或常量容器。
+事件代码随生产者功能分包：`org.hcz.work.event`、`org.hcz.notification.event`、`org.hcz.audit.event` 和 `org.hcz.comment.event`。每个功能包自行维护 Spring 事件、RocketMQ 消息、发布器、消费者及 Topic/消费组常量，避免跨功能共享发布器或常量容器；通用的 Outbox 设施位于 `org.hcz.common.messaging`。
 
-互动事件使用独立消费组处理热榜和推荐，消费者失败时由 RocketMQ 重投。当前项目没有引入 Outbox；如果业务需要严格保证数据库提交和消息投递的一致性，需要后续增加 Outbox 或持久化重放任务。
+互动、通知及审核派生事件先在业务数据库事务中写入 `event_outbox`，后台调度器抢占并投递 RocketMQ。投递采用至少一次语义；消费者按 `event_id + consumer` 幂等，推荐模型在 Lua 中用事件 ID 去重。连续失败 8 次的记录进入死信状态并输出结构化 ERROR 日志，需在 OpenObserve 配置死信告警。
+
+部署到现有数据库时，必须先执行 `src/main/resources/db/migration/20260920_event_outbox.sql`，再发布启用 Outbox 调度器的应用版本。全新数据库可直接使用 `src/main/resources/db/schema.sql`。死信记录保留在 `event_outbox` 表中；修复依赖故障后，可人工将状态重置为待投递并设置 `next_retry_at = NOW()`。
 
 ### Redis
 

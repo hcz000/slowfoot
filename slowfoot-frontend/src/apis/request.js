@@ -1,32 +1,25 @@
-import axios from 'axios';
-import { useUserStore } from '../stores';
-const instance = axios.create({
-  baseURL: "/api",
-  timeout: 1000000,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
+import axios from 'axios'
+import { useUserStore } from '../stores'
 
-// 添加请求拦截器
-instance.interceptors.request.use(config => {
-  const userStore = useUserStore()
-  if(userStore.$state.token)
-    config.headers.token = userStore.$state.token
-  return config;
-}, error => {
+const instance = axios.create({
+  baseURL: '/api',
+  timeout: 30000,
+  headers: { 'Content-Type': 'application/json' }
+})
+
+instance.interceptors.request.use((config) => {
+  const token = useUserStore().token
+  if (token) config.headers.token = token
+  return config
+})
+
+instance.interceptors.response.use((response) => response, (error) => {
+  if (error.response?.status === 401) {
+    const userStore = useUserStore()
+    sessionStorage.removeItem('token')
+    userStore.$patch({ token: null, info: {} })
+  }
   return Promise.reject(error)
 })
 
-// 添加响应拦截器
-instance.interceptors.response.use((response) => {
-  // 2xx 范围内的状态码都会触发该函数。
-  // 对响应数据做点什么
-  return response;
-}, (error) => {
-  // 超出 2xx 范围的状态码都会触发该函数。
-  // 对响应错误做点什么
-  return Promise.reject(error);
-});
-
-export default instance;
+export default instance

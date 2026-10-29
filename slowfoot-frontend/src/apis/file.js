@@ -1,4 +1,5 @@
 import request from './request'
+import { useUserStore } from '../stores'
 
 const defaultCallbacks = {
     next: () => {},
@@ -82,7 +83,10 @@ export const apiUploadFile = async (file, callBack = defaultCallbacks) => {
 
 /** Return a trusted, short-lived URL for a registered file. */
 export const apiFileGet = (fileId) => {
+    const token = useUserStore().token
     return request.getUri({
-        url: `/file/${fileId}`
+        url: `/file/${fileId}`,
+        // 浏览器加载 <video>/<img> 资源时无法携带请求头，因此通过查询参数传递 token。
+        params: token ? { token } : {}
     })
 }

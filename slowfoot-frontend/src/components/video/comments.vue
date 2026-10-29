@@ -4,8 +4,9 @@
       <span>评论</span>
       <el-tag size="small" effect="plain">{{ total }}</el-tag>
       <span class="heading-spacer" />
-      <el-button text circle aria-label="刷新评论" @click="loadComments">
+      <el-button text class="comment-action" aria-label="刷新评论" @click="loadComments">
         <i class="mdi mdi-refresh" />
+        <span>刷新</span>
       </el-button>
     </div>
     <el-divider />
@@ -25,23 +26,27 @@
     <div v-if="comments.length" class="comment-list">
       <template v-for="comment in comments" :key="comment.id">
         <div class="comment-item">
-          <el-avatar :src="comment.userAvatar ? apiFileGet(comment.userAvatar) : '/logo.png'" />
+          <el-avatar v-if="comment.userAvatar" :src="apiFileGet(comment.userAvatar)" />
+          <DefaultAvatar v-else :size="40" />
           <div class="comment-body">
             <strong>{{ comment.userName || '用户' }}</strong>
             <small>{{ formatDate(comment.gmtCreated) }}</small>
             <p>{{ comment.content }}</p>
           </div>
           <div class="comment-actions">
-            <el-button v-if="canDelete(comment)" text circle aria-label="删除评论" @click="deleteComment(comment.id)">
+            <el-button v-if="canDelete(comment)" text class="comment-action" aria-label="删除评论" @click="deleteComment(comment.id)">
               <i class="mdi mdi-delete-outline" />
+              <span>删除</span>
             </el-button>
-            <el-button v-if="userStore.token" text circle aria-label="回复评论" @click="reply(comment)">
+            <el-button v-if="userStore.token" text class="comment-action" aria-label="回复评论" @click="reply(comment)">
               <i class="mdi mdi-reply" />
+              <span>回复</span>
             </el-button>
           </div>
         </div>
         <div v-for="replyItem in comment.replies || []" :key="replyItem.id" class="comment-item reply-item">
-          <el-avatar size="32" :src="replyItem.userAvatar ? apiFileGet(replyItem.userAvatar) : '/logo.png'" />
+          <el-avatar v-if="replyItem.userAvatar" size="32" :src="apiFileGet(replyItem.userAvatar)" />
+          <DefaultAvatar v-else :size="32" />
           <div class="comment-body">
             <strong>{{ replyItem.userName || '用户' }}</strong>
             <small>{{ formatDate(replyItem.gmtCreated) }}</small>
@@ -50,8 +55,9 @@
               {{ replyItem.content }}
             </p>
           </div>
-          <el-button v-if="canDelete(replyItem)" text circle aria-label="删除回复" @click="deleteComment(replyItem.id)">
+          <el-button v-if="canDelete(replyItem)" text class="comment-action" aria-label="删除回复" @click="deleteComment(replyItem.id)">
             <i class="mdi mdi-delete-outline" />
+            <span>删除</span>
           </el-button>
         </div>
         <el-divider />
@@ -67,9 +73,10 @@
 import { ref, watch } from 'vue'
 import { apiFileGet } from '../../apis/file'
 import { apiCreateComment, apiDeleteComment, apiGetWorkComments } from '../../apis/comment'
+import DefaultAvatar from '../DefaultAvatar.vue'
 import { useUserStore } from '../../stores'
 
-const props = defineProps({ workId: { type: Number, default: null } })
+const props = defineProps({ workId: { type: [Number, String], default: null } })
 const userStore = useUserStore()
 const comments = ref([])
 const content = ref('')
@@ -119,18 +126,27 @@ watch(() => props.workId, () => {
 </script>
 
 <style scoped>
-.comments-card { background: #36393f; border: 0; }
+.comments-card { min-height: 100%; color: #2a3446; background: #fff; border: 0; }
+.comments-card :deep(.el-card__body) { padding: 0; }
 .comments-heading, .comment-item, .comment-actions { display: flex; align-items: center; }
-.comments-heading { padding: 12px 16px; font-size: 18px; }
+.comments-heading { position: sticky; top: 0; z-index: 1; padding: 15px 18px; background: #fff; border-bottom: 1px solid #eef0f4; font-size: 16px; font-weight: 750; }
+.comments-heading :deep(.el-tag) { margin-left: 7px; }
 .heading-spacer { flex: 1; }
-.comment-editor { padding: 8px 16px 16px; }
-.comment-actions { justify-content: flex-end; gap: 8px; }
-.comment-list { padding: 0 16px; }
-.comment-item { align-items: flex-start; gap: 12px; padding: 12px 0; }
-.reply-item { margin-left: 44px; }
+.comment-action { display: inline-flex; align-items: center; gap: 5px; min-height: 28px; padding: 4px 7px; color: #8a94a6; border-radius: 6px; font-size: 11px; }
+.comment-action:hover { color: #ff2442; background: #fff0f2; }
+.comment-action i { font-size: 15px; }
+.comment-action span { font-size: 11px; }
+.comment-editor { padding: 14px 18px 17px; border-bottom: 1px solid #eef0f4; }
+.comment-editor :deep(.el-textarea__inner) { color: #2a3446; background: #f7f8fa; box-shadow: 0 0 0 1px #dfe4ec inset; }
+.comment-actions { justify-content: flex-end; gap: 8px; margin-top: 10px; }
+.comment-list { padding: 3px 18px 12px; }
+.comment-item { align-items: flex-start; gap: 11px; padding: 14px 0; border-bottom: 1px solid #f1f3f7; }
+.reply-item { margin-left: 42px; }
 .comment-body { flex: 1; min-width: 0; }
 .comment-body strong, .comment-body small { display: block; }
-.comment-body small, .muted, .login-hint { color: #a3a6ad; }
-.comment-body p { margin: 6px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
-.login-hint, .empty-state { padding: 24px 16px; text-align: center; }
+.comment-body strong { color: #333d4e; font-size: 12px; }
+.comment-body small, .muted, .login-hint { color: #98a1b0; font-size: 10px; }
+.comment-body p { margin: 6px 0 0; color: #3c4657; font-size: 13px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.login-hint, .empty-state { padding: 28px 18px; color: #98a1b0; text-align: center; font-size: 12px; }
+:deep(.el-pagination) { justify-content: center; padding: 10px 0 18px; }
 </style>

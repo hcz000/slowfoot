@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../lib/layui-v2.7.3/layui/css/layui.css" media="all">
     <link rel="stylesheet" href="../../css/public.css" media="all">
 
+    <link rel="stylesheet" href="../../css/admin-refresh.css?v=20261011">
 </head>
 <body>
 
@@ -27,7 +28,7 @@
                             </div>
                         </div>
                         <div class="layui-inline">
-                            <label class="layui-form-label">视频名称</label>
+                            <label class="layui-form-label">作品名称</label>
                             <div class="layui-input-inline">
                                 <input type="text" name="title" autocomplete="off" class="layui-input" id="title">
                             </div>
@@ -63,7 +64,8 @@
     layui.use(['form', 'table'], function () {
         var $ = layui.jquery,
             form = layui.form,
-            table = layui.table;
+            table = layui.table,
+            layer = layui.layer;
 
         table.render({
             elem: '#currentTableId',
@@ -93,6 +95,7 @@
                 {type: "checkbox", width: 50},
                 { field: 'id', title: 'ID' ,sort: true,hide:true},
                 { field: 'workNo', title: '作品号' },
+                { field: 'workType', title: '作品类型', templet: function (row) { return ({ VIDEO: '视频', IMAGE: '图片', TEXT: '文章' })[row.workType] || row.workType; } },
                 { field: 'title', title: '名称' },
                 { field: 'auditStateName', title: '审核状态' },
                 { field: 'openName', title: '作品状态' },
@@ -128,7 +131,7 @@
         table.on('tool(currentTableFilter)', function (obj) {
             var data = obj.data
             if(obj.event == 'delete'){
-                layer.confirm('确定删除选定的视频吗?', function(index){
+                layer.confirm('确定删除选中的作品吗?', function(index){
                     $.ajax({
                         url: ipURL + '/admin/work/'+data.id,
                         method: 'delete',
@@ -146,30 +149,9 @@
                     });
                 });
             }else if(obj.event == 'audit'){
-                // 打开窗口，显示审核内容，以及是否放行
-                layer.confirm('确定放行选中的视频吗?', function(index){
-                    $.ajax({
-                        url: ipURL + '/admin/work/audit',
-                        method: 'post',
-                        // WorkAuditRequest: 放行即把审核状态置为「通过」(0)
-                        data: JSON.stringify({ id: data.id, auditStatus: 0 }),
-                        contentType: 'application/json',  
-                        beforeSend: function (request) {
-                            request.setRequestHeader("token", localStorage.token);
-                        },
-                        success: function (res) {
-                            layer.msg(res.message);
-                            layer.close(index);
-                            table.reload('currentTableId');
-                        },
-                        error: function (data) {
-                            layer.msg(data.message);
-                        }
-                    });
-                });
+                openAudit(data);
             }else if(obj.event == 'violations'){
-                // 打开窗口，显示审核内容，以及是否放行
-                layer.confirm('确定下架选中的视频吗?', function(index){
+                layer.confirm('确定下架选中的作品吗?', function(index){
                     $.ajax({
                         url: ipURL + '/admin/work/violations/'+data.id,
                         method: 'post',
@@ -189,6 +171,86 @@
             }
         });
 
+        function escapeHtml(value) {
+            return String(value == null ? '' : value).replace(/[&<>"']/g, function (char) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char];
+            });
+        }
+
+        function renderAuditDetail(work) {
+            var typeNames = { VIDEO: '视频作品', IMAGE: '图片作品', TEXT: '文字作品' };
+            var assets = work.assets || [];
+            var media = '';
+            if (work.workType === 'TEXT') {
+                media = '<pre class="audit-work-text">' + escapeHtml(work.content || '正文为空') + '</pre>';
+            } else if (work.workType === 'IMAGE') {
+                var images = assets.filter(function (asset) { return asset.assetType === 'IMAGE'; });
+                media = images.length
+                    ? '<div class="audit-work-images">' + images.map(function (asset) { return '<img src="' + escapeHtml(asset.url) + '" alt="作品图片">'; }).join('') + '</div>'
+                    : '<p>没有可预览的图片资源。</p>';
+            } else if (work.workType === 'VIDEO') {
+                var video = assets.find(function (asset) { return asset.assetType === 'VIDEO'; });
+                var cover = assets.find(function (asset) { return asset.assetType === 'COVER'; });
+                media = video
+                    ? '<video class="audit-work-video" controls preload="metadata" poster="' + escapeHtml(cover ? cover.url : '') + '" src="' + escapeHtml(video.url) + '"></video>'
+                    : '<p>没有可预览的视频资源。</p>';
+            }
+            return '<div class="audit-work-detail">' +
+                '<div class="audit-work-type">' + escapeHtml(typeNames[work.workType] || work.workType || '未知类型') + '</div>' +
+                '<h2>' + escapeHtml(work.title || '未命名作品') + '</h2>' +
+                (work.description ? '<p class="audit-work-description">' + escapeHtml(work.description) + '</p>' : '') +
+                media + '</div>';
+        }
+
+        function submitAudit(id, auditStatus, auditMsg, onSuccess) {
+            $.ajax({
+                url: ipURL + '/admin/work/audit',
+                method: 'post',
+                data: JSON.stringify({ id: id, auditStatus: auditStatus, auditMsg: auditMsg || '' }),
+                contentType: 'application/json',
+                beforeSend: function (request) { request.setRequestHeader('token', localStorage.token); },
+                success: function (res) {
+                    layer.msg(res.message || '作品审核完成');
+                    if (onSuccess) onSuccess();
+                    table.reload('currentTableId');
+                },
+                error: function (xhr) { layer.msg(xhr.responseJSON && xhr.responseJSON.message || '审核操作失败'); }
+            });
+        }
+
+        function openAudit(row) {
+            $.ajax({
+                url: ipURL + '/admin/work/' + row.id,
+                method: 'get',
+                beforeSend: function (request) { request.setRequestHeader('token', localStorage.token); },
+                success: function (res) {
+                    if (!res.success || !res.data) { layer.msg(res.message || '读取作品内容失败'); return; }
+                    var work = res.data;
+                    var dialogIndex = layer.open({
+                        type: 1,
+                        title: '审核' + (({ VIDEO: '视频', IMAGE: '图片', TEXT: '文章' })[work.workType] || '作品'),
+                        area: ['760px', '82vh'],
+                        content: renderAuditDetail(work),
+                        btn: ['通过', '驳回', '关闭'],
+                        btn1: function () {
+                            submitAudit(work.id, 0, '', function () { layer.close(dialogIndex); });
+                            return false;
+                        },
+                        btn2: function () {
+                            layer.prompt({ title: '填写驳回原因', formType: 2 }, function (reason, promptIndex) {
+                                submitAudit(work.id, 2, reason, function () {
+                                    layer.close(promptIndex);
+                                    layer.close(dialogIndex);
+                                });
+                            });
+                            return false;
+                        }
+                    });
+                },
+                error: function (xhr) { layer.msg(xhr.responseJSON && xhr.responseJSON.message || '读取作品内容失败'); }
+            });
+        }
+
     })
 
 </script>
@@ -203,6 +265,17 @@
     .myData .layui-form-label{
         width: 80px;
     }
+</style>
+
+<style>
+    .audit-work-detail { max-height: 67vh; padding: 4px 10px 12px; overflow: auto; color: #27313d; }
+    .audit-work-type { display: inline-block; padding: 5px 9px; color: #1c65a6; background: #eaf4fc; border-radius: 5px; font-size: 12px; }
+    .audit-work-detail h2 { margin: 14px 0 8px; font-size: 20px; }
+    .audit-work-description { color: #687586; white-space: pre-wrap; }
+    .audit-work-text { max-height: 48vh; padding: 16px; overflow: auto; background: #f5f7fa; border-radius: 7px; font: inherit; line-height: 1.8; white-space: pre-wrap; }
+    .audit-work-images { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+    .audit-work-images img { width: 100%; max-height: 48vh; object-fit: contain; background: #121820; border-radius: 5px; }
+    .audit-work-video { display: block; width: 100%; max-height: 52vh; background: #080a0d; }
 </style>
 
 <form class="layui-form myData" action="save" method="post" lay-filter="stuform" id="audit" style="display: none">

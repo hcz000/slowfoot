@@ -46,6 +46,7 @@ layui.define(["jquery", "miniMenu", "element","miniTab", "miniTheme"], function 
                     if (data == null) {
                         miniAdmin.error('暂无菜单信息')
                     } else {
+                        data.menuInfo = miniAdmin.normalizeMenuList(data.menuInfo);
                         miniAdmin.renderLogo(data.logoInfo);
                         miniAdmin.renderClear(options.clearUrl);
                         miniAdmin.renderHome(data.homeInfo);
@@ -74,8 +75,15 @@ layui.define(["jquery", "miniMenu", "element","miniTab", "miniTheme"], function 
                         });
                         miniAdmin.deleteLoader(options.loadingTime);
                     }
-                }}).fail(function () {
-                miniAdmin.error('菜单接口有误');
+                }}).fail(function (xhr) {
+                if (xhr && xhr.status === 401) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('refreshToken');
+                    window.location.href = 'page/login.html';
+                    return;
+                }
+                var message = xhr && xhr.responseJSON && xhr.responseJSON.message;
+                miniAdmin.error(message || '菜单加载失败，请检查后端服务后重试');
             });
         },
 
@@ -83,11 +91,29 @@ layui.define(["jquery", "miniMenu", "element","miniTab", "miniTheme"], function 
          * 初始化logo
          * @param data
          */
+        normalizeMenuList: function (items) {
+            var titleMap = {
+                'user:list': '用户角色',
+                'role:list': '角色管理',
+                'permission:list': '菜单权限',
+                'admin:work:page': '作品审核',
+                'admin:comment:page': '评论审核'
+            };
+            function visit(nodes) {
+                (nodes || []).forEach(function (item) {
+                    if ((!item.href || item.href === 'null') && item.path) item.href = item.path;
+                    if (titleMap[item.title]) item.title = titleMap[item.title];
+                    visit(item.child);
+                });
+                return nodes || [];
+            }
+            return visit(items);
+        },
         renderLogo: function (data) {
-            var html = '<a href="' + data.href + '"><img src="' + data.image + '" alt="logo"><h1>' + data.title + '</h1></a>';
+            var target = data && data.href ? data.href : '/index.html';
+            var html = '<a href="' + target + '" class="sf-admin-brand"><span class="sf-admin-mark" aria-hidden="true">SF</span><h1>SlowFoot</h1></a>';
             $('.layuimini-logo').html(html);
         },
-
         /**
          * 初始化首页
          * @param data

@@ -63,7 +63,7 @@ mysql -uroot -p lucky-journey < slowfoot-backend/src/main/resources/db/migration
 
 ```powershell
 cd slowfoot-backend
-./mvnw.cmd spring-boot:run
+./mvnw.cmd spring-boot:run -Dspring-boot.run.jvmArguments=-Xmx256m
 ```
 
 默认端口为 `8882`。也可以执行 `./mvnw.cmd clean package` 后运行 `target/slowfoot-backend-0.0.1-SNAPSHOT.jar`。

@@ -74,7 +74,7 @@ const getEmailCode = async () => {
     showMessage(data.message, data.success ? 'success' : 'error')
     if (!data.success) getCaptchaImg()
   } catch (error) {
-    showMessage(error.message)
+    showMessage(error.response?.data?.message || error.message)
   } finally {
     isLoading.value = false
   }
@@ -107,7 +107,7 @@ const setPassword = async () => {
     if (!data.success) { showMessage(data.message, 'error'); return }
     step.value++
   } catch (error) {
-    showMessage(error.message)
+    showMessage(error.response?.data?.message || '注册失败，请稍后重试')
   } finally {
     isLoading.value = false
   }
@@ -117,9 +117,9 @@ getCaptchaImg()
 </script>
 
 <style scoped>
-.auth-flow-card { max-width: 650px; margin: 0 auto; background: #36393f; border: 0; }
+.auth-flow-card { width: 100%; max-width: none; margin: 0; background: transparent; border: 0; }
 .flow-heading { padding: 12px 0; font-size: 18px; font-weight: 700; }
-.flow-panel { margin: 16px; background: #2f3136; border: 0; }
+.flow-panel { margin: 0; background: #fafafa; border: 1px solid #eee; }
 .flow-form { display: flex; flex-direction: column; gap: 14px; }
 .captcha-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: center; }
 .captcha-row .el-image { height: 42px; cursor: pointer; }

@@ -15,15 +15,15 @@
           <i class="mdi mdi-close" />
         </el-button>
         <div class="player-actions">
-          <el-badge value="+" type="danger">
-            <el-avatar :src="currentVideo.user?.avatar ? apiFileGet(currentVideo.user.avatar) : '/logo.png'"
-              @click="likeUser" />
+          <el-badge value="+" type="danger" :hidden="isOwnCreator(currentVideo)">
+            <el-avatar v-if="currentVideo.user?.avatar" :src="apiFileGet(currentVideo.user.avatar)" @click="likeUser" />
+            <DefaultAvatar v-else :size="40" @click="likeUser" />
           </el-badge>
           <el-button circle type="primary" @click="openRgihtD">
             <i class="mdi mdi-more" />
           </el-button>
           <el-badge :value="currentVideo.likeCount" type="danger">
-            <el-button circle type="danger" @click="starVideo"><i class="mdi mdi-heart" /></el-button>
+            <el-button circle type="danger" :loading="likePending" @click="starVideo"><i class="mdi mdi-heart" /></el-button>
           </el-badge>
           <FavoriteCom :video-id="currentVideo.id" :callback="favoriteCallBack">
             <template #default="{ props }">
@@ -47,12 +47,15 @@
 <script setup>
 import { computed, getCurrentInstance, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { apiFileGet } from '../../apis/file'
+import { apiGetUserInfo } from '../../apis/user/user'
 import { apiFollows } from '../../apis/user/like'
 import { apiAddHistory, apiGetVideoBySimilar, apiInitFollowFeed, apiSetUserVideoModel, apiShareVideo, apiStarVideo } from '../../apis/video'
 import FavoriteCom from '../../components/favorite/index.vue'
 import VideoCard from '../../components/video/card.vue'
 import WorkComments from '../../components/video/comments.vue'
+import DefaultAvatar from '../../components/DefaultAvatar.vue'
 import strUtils from '../../utils/strUtil'
+import { useUserStore } from '../../stores'
 
 const props = defineProps({
   videoInfo: { type: Object, default: null },
@@ -63,6 +66,7 @@ const props = defineProps({
 })
 
 const snackbar = ref({ show: false, text: '', color: 'info' })
+const userStore = useUserStore()
 const drawer = ref(true)
 const currentIndex = ref(0)
 const similarList = ref([props.videoInfo])
@@ -70,7 +74,9 @@ const video = ref()
 const videoPlayer = ref()
 const isAddHistory = ref(true)
 const playback = ref({ workId: null, watchSessionId: null, reported: false })
+const likePending = ref(false)
 const instance = getCurrentInstance().proxy
+const isVideoWork = (work) => !work?.workType || work.workType === 'VIDEO'
 
 const currentVideo = computed(() => {
   const temp = similarList.value[currentIndex.value]
@@ -82,9 +88,9 @@ const currentVideo = computed(() => {
 
 const shareBtn = () => apiShareVideo(currentVideo.value.id)
 const openRgihtD = () => { drawer.value = !drawer.value }
-const favoriteCallBack = (message) => {
-  if (message === '已收藏') currentVideo.value.favoriteCount++
-  else currentVideo.value.favoriteCount--
+const favoriteCallBack = (message, changed) => {
+  if (changed) currentVideo.value.favoriteCount++
+  currentVideo.value.favoriteState = true
   snackbar.value = { show: true, text: message, color: 'info' }
 }
 
@@ -102,7 +108,7 @@ const windowKeyEvent = (event) => {
 
 const copyUrl = () => {
   shareBtn()
-  snackbar.value = { text: strUtils.copyContent(`${location.host}/#/?play=${currentVideo.value.id}`) ? '视频地址复制成功' : '视频地址复制失败', show: true, color: 'info' }
+  snackbar.value = { text: strUtils.copyContent(`${location.host}/#/?play=${currentVideo.value.id}`) ? '作品地址复制成功' : '作品地址复制失败', show: true, color: 'info' }
 }
 
 const createWatchSessionId = () => {
@@ -143,20 +149,61 @@ const firstInitVideo = () => {
   nextTick(() => videoPlayer.value.play())
   if (!props.videoList.length && props.videoInfo?.labelNames) {
     apiGetVideoBySimilar(props.videoInfo.labelNames, props.videoInfo.id).then(({ data }) => {
-      if (data.success) similarList.value = similarList.value.concat(data.data || [])
+      if (data.success) similarList.value = similarList.value.concat((data.data || []).filter(isVideoWork))
     })
   }
 }
 
-const likeUser = () => apiFollows(currentVideo.value.user.id).then(({ data }) => {
-  if (data.message === '已关注') apiInitFollowFeed()
-  snackbar.value = { text: data.message, show: true, color: data.success ? 'success' : 'error' }
-})
+const isOwnCreator = (item) => userStore.info?.id != null
+  && item?.user?.id != null
+  && String(userStore.info.id) === String(item.user.id)
 
-const starVideo = () => apiStarVideo(currentVideo.value.id).then(({ data }) => {
-  snackbar.value = { show: true, text: data.message, color: data.success ? 'success' : 'error' }
-  if (data.success) currentVideo.value.likeCount += data.message === '已点赞' ? 1 : -1
-})
+const likeUser = async () => {
+  if (!userStore.token || !currentVideo.value?.user?.id) {
+    snackbar.value = { text: '请先登录后再关注创作者', show: true, color: 'warning' }
+    return
+  }
+
+  try {
+    let currentUserId = userStore.info?.id
+    if (currentUserId == null) {
+      const { data } = await apiGetUserInfo()
+      if (!data?.success || data.data?.id == null) throw new Error(data?.message || '无法确认当前登录用户')
+      userStore.$patch({ info: data.data })
+      currentUserId = data.data.id
+    }
+    if (String(currentUserId) === String(currentVideo.value.user.id)) {
+      snackbar.value = { text: '这是你自己的作品，无需关注自己', show: true, color: 'info' }
+      return
+    }
+
+    const { data } = await apiFollows(currentVideo.value.user.id)
+    if (data.message === '已关注') apiInitFollowFeed()
+    snackbar.value = { text: data.message, show: true, color: data.success ? 'success' : 'error' }
+  } catch (error) {
+    snackbar.value = {
+      text: error?.response?.data?.message || error?.message || '关注操作失败，请稍后再试',
+      show: true,
+      color: 'error'
+    }
+  }
+}
+
+const starVideo = async () => {
+  if (likePending.value) return
+  const liked = !currentVideo.value.likeState
+  likePending.value = true
+  try {
+    const { data } = await apiStarVideo(currentVideo.value.id, liked)
+    snackbar.value = { show: true, text: data.message, color: data.success ? 'success' : 'error' }
+    if (data.success) {
+      currentVideo.value.likeState = liked
+      if (data.data) currentVideo.value.likeCount += liked ? 1 : -1
+    }
+  } finally {
+    likePending.value = false
+  }
+}
 
 const playVideo = (item) => {
   if (!item || !videoPlayer.value) return
@@ -172,7 +219,7 @@ const playVideo = (item) => {
 }
 
 watch(() => props.videoList, (value) => {
-  if (value?.length) similarList.value = value
+  if (value?.length) similarList.value = value.filter(isVideoWork)
 }, { immediate: true, deep: true })
 watch(currentVideo, playVideo)
 
